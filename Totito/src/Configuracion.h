@@ -1,7 +1,6 @@
 #ifndef CONFIGURACION_H
 #define CONFIGURACION_H
 
-#include "Punto.h"
 #include "Jugador.h"
 #include <iostream>
 
@@ -11,9 +10,6 @@ class Configuracion {
 private:
     int filas;
     int columnas;
-    Punto* inicio; // Primer punto del tablero (arriba-izquierda)
-
-    // Nuevos atributos
     Jugador* jugadores[MAX_JUGADORES];
     int cantidadJugadores;
 
@@ -21,16 +17,15 @@ public:
     Configuracion();
     ~Configuracion();
 
-    void pedirDatos();
-    void construirTablero();
-    void mostrarTableroVacio() const;
-
-    // Nuevos métodos
-    void pedirJugadores();
+    void pedirDatos();      // pide filas y columnas
+    void pedirJugadores();  // pide número de jugadores y sus nombres
     void mostrarJugadores() const;
 
-    // Limpieza de memoria
-    void liberarMemoria();
+    // Getters
+    int getFilas() const;
+    int getColumnas() const;
+    int getCantidadJugadores() const;
+    Jugador* getJugador(int i) const;
 };
 
 #endif // CONFIGURACION_H
