@@ -9,7 +9,7 @@ int main() {
 
     Tablero tablero(config.getFilas(), config.getColumnas());
     tablero.construir();
-    tablero.mostrarVacio();
+    tablero.mostrar();
 
     return 0;
 }
