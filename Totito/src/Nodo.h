@@ -18,8 +18,6 @@ public:
     T* getDato() const { return dato; }
     Nodo<T>* getSiguiente() const { return siguiente; }
     Nodo<T>* getAnterior() const { return anterior; }
-
-    // (Opcional) Setters, si quieres manipular directamente
     void setSiguiente(Nodo<T>* sig) { siguiente = sig; }
     void setAnterior(Nodo<T>* ant) { anterior = ant; }
 };

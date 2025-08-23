@@ -77,38 +77,46 @@ void Tablero::construir() {
     }
 }
 
-//mostrar tablero
+//mostrar tablero con coordenadas alineadas
 void Tablero::mostrar() const {
-    std::cout << "\nTABLERO: \n";
+    std::cout << "\n  "; // espacio inicial para alinear con índice de filas
+
+    // Encabezado columnas (alineado a los puntos)
+    for (int j = 0; j < columnas; j++) {
+        char letra = 'A' + j;
+        std::cout << letra << "   "; // letra y un espacio
+    }
+    std::cout << "\n";
 
     for (int i = 0; i < filas; i++) {
+        std::cout << i << " "; // índice de fila al inicio
+
         for (int j = 0; j < columnas; j++) {
-            
-            Punto* p = buscarPunto(i, j);;
+            Punto* p = buscarPunto(i, j);
             std::cout << p->toString();
 
-            if (j < columnas -1) {
+            if (j < columnas - 1) {
                 Linea* l = buscarLinea(p, buscarPunto(i, j + 1));
-                std::cout << l->toString();
+                std::cout << (l ? l->toString() : " ");
             }
         }
-
-        std::cout <<"\n";
+        std::cout << "\n";
 
         //lineas verticales + celdas
         if (i < filas - 1) {
+            std::cout << "  "; // espacio bajo índice de fila
             for (int j = 0; j < columnas; j++) {
                 Punto* p = buscarPunto(i, j);
-
                 Linea* l = buscarLinea(p, buscarPunto(i + 1, j));
                 std::cout << (l ? l->toString() : " ");
 
                 if (j < columnas - 1) {
-                    Celda* c = buscarCelda(i , j);
+                    Celda* c = buscarCelda(i, j);
                     std::cout << (c ? c->toString() : " ");
+                    std::cout << " ";
                 }
             }
-            std::cout <<"\n";
+            std::cout << "\n";
         }
     }
 }
