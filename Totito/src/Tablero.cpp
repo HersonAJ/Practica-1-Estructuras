@@ -66,8 +66,20 @@ void Tablero::crearMalla() {
 }
 
 void Tablero::imprimir() const {
+    // Encabezado de columnas (letras)
+    cout << "    "; // espacio inicial para alinear con números de filas
+    for (int c = 0; c < columnas; c++) {
+        char letra = 'A' + c;
+        cout << letra << "   ";
+    }
+    cout << "\n\n";
+
+    // Recorrido por filas
     Nodo4<Punto>* filaPtr = inicio;
+    int filaIndice = 0;
     while (filaPtr) {
+        cout << filaIndice << "   "; // imprimir número de fila
+
         Nodo4<Punto>* colPtr = filaPtr;
         while (colPtr) {
             cout << colPtr->obtenerDato().simbolo() << "   ";
@@ -75,6 +87,7 @@ void Tablero::imprimir() const {
         }
         cout << "\n\n";
         filaPtr = filaPtr->obtenerAbajo();
+        filaIndice++;
     }
 }
 
