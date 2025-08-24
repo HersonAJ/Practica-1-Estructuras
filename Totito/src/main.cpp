@@ -15,9 +15,10 @@ int main() {
 }
     */
 
-    #include "Juego.h"
+#include "Juego.h"
 #include "Configuracion.h"
 #include <iostream>
+#include "Tablero.h"
 
 int main() {
     Configuracion config;
@@ -25,16 +26,15 @@ int main() {
     config.pedirJugadores();
     config.mostrarJugadores();
 
-    Juego juego(config.getFilas(), config.getColumnas());
-    juego.iniciar();
+    Tablero tablero(config.getFilas(), config.getColumnas());
 
-    std::string c1, c2;
-    std::cout << "Ingrese primera coordenada (ej: A0): ";
-    std::cin >> c1;
-    std::cout << "Ingrese segunda coordenada (ej: A1): ";
-    std::cin >> c2;
+    tablero.imprimir();
 
-    juego.colocarLinea(c1, c2);
+    std::cout << "\n====prueba de los vecinos del nodo=====\n";
+    tablero.mostrarVecinos(0,0);
+    tablero.mostrarVecinos(2, 2);
+    tablero.mostrarVecinos(4, 4);
+
 
     return 0;
 }

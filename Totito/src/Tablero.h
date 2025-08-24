@@ -1,41 +1,25 @@
 #ifndef TABLERO_H
 #define TABLERO_H
 
-#include <iostream>
-#include <string>
-#include "Lista.h"
+#include "Nodo4.h"
 #include "Punto.h"
-#include "Linea.h"
-#include "Celda.h"
 
 class Tablero {
-private:
+    private:
     int filas;
     int columnas;
+    Nodo4<Punto>* inicio;//nodo de la esquina superior izquierda
 
-    Lista<Punto> puntos;
-    Lista<Linea> lineas;
-    Lista<Celda> celdas;
+    void crearMalla();
+    Nodo4<Punto>* obtenerNodo(int fila, int columna) const;
 
-public:
-    Tablero(int f, int c);
+    public:
+    Tablero(int filas, int columnas);
     ~Tablero();
 
-    // Construcción
-    void construir();
+    void imprimir() const;
+    void mostrarVecinos(int fila, int columna) const;
 
-    // Mostrar tablero
-    void mostrar() const;
-
-    // Métodos de acceso
-    Punto* buscarPunto(int fila, int col) const;
-    Linea* buscarLinea(Punto* p1, Punto* p2) const;
-    Celda* buscarCelda(int fila, int col) const;
-
-    int getFilas() const;
-    int getColumnas() const;
-
-    bool agregarLinea(const std::string& c1, const std::string& c2, char jugador);
 };
 
-#endif // TABLERO_H
+#endif

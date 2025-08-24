@@ -1,4 +1,4 @@
-#include "Juego.h"
+/*#include "Juego.h"
 #include <iostream>
 #include <cctype>
 
@@ -52,3 +52,4 @@ Punto* Juego::parseCoordenada(const std::string& coord) {
 
     return tablero.buscarPunto(fila, col);
 }
+*/

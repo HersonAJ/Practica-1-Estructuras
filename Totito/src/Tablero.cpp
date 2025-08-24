@@ -1,159 +1,116 @@
 #include "Tablero.h"
+#include "ListaEnlazada.h"
+#include <iostream>
+using namespace std;
 
-//constructor
-Tablero::Tablero(int f, int c) : filas(f), columnas(c) {}
+Tablero::Tablero(int filas, int columnas)
+    : filas(filas), columnas(columnas), inicio(nullptr) {
+    crearMalla();
+}
 
-//desctructor
-Tablero::~Tablero(){}
-
-void Tablero::construir() {
-    //crear puntos
-    for (int i = 0; i < filas; i++) {
-        for (int j = 0; j < columnas; j++) {
-            Punto* nuevo = new Punto(i, j);
-            puntos.agregarFinal(nuevo);
-        }
-    }
-
-    //lineas
-    for (int i = 0; i < filas; i++) {
-        for (int j = 0; j < columnas; j++) {
-            Punto* actual = buscarPunto(i , j);
-
-            //linea horizontal hacia la derecha
-            if (j < columnas -1) {
-                Punto* derecha = buscarPunto(i, j + 1);
-                Linea* l = new Linea(actual, derecha, Orientacion::HORIZONTAL);
-                lineas.agregarFinal(l);
-
-                actual->setRight(derecha);
-                derecha->setLeft(actual);
-
-                actual->setLineaDerecha(l);
-                derecha->setLineaIzquierda(l);
-            }
-
-            //linea vertical hacia abajo
-            if (i < filas - 1 ){
-                Punto* abajo = buscarPunto(i + 1, j);
-                Linea* l = new Linea(actual, abajo, Orientacion::VERTICAL);
-                lineas.agregarFinal(l);
-
-                actual->setDown(abajo);
-                abajo->setUp(actual);
-
-                actual->setLineaAbajo(l);
-                abajo->setLineaArriba(l);
-            }
-        }
-    }
-
-    //reconocimiento de celdas asociadas a cuatro lineas
-    for (int i = 0; i < filas -1; i++) {
-        for (int j = 0; j < columnas - 1; j++) {
-            Celda* celda = new Celda(i, j);
-            celdas.agregarFinal(celda);
-
-            Punto* supIzq = buscarPunto(i, j);
-            Punto* supDer = buscarPunto(i, j + 1);
-            Punto* infIzq = buscarPunto(i + 1, j);
-            Punto* infDer = buscarPunto(i + 1, j + 1);
-
-            Linea* arriba = buscarLinea(supIzq, supDer);
-            Linea* abajo = buscarLinea(infIzq, infDer);
-            Linea* izq = buscarLinea(supIzq, infIzq);
-            Linea* der = buscarLinea(supDer, infDer);
-
-            celda->setLineaArriba(arriba);
-            celda->setLineaAbajo(abajo);
-            celda->setLineaIzquierda(izq);
-            celda->setLineaDerecha(der);
-
-            if (arriba) arriba->setCeldaA(celda);
-            if (abajo) abajo->setCeldaB(celda);
-            if (izq) izq->setCeldaA(celda);
-            if (der) der->setCeldaB(celda);
+Tablero::~Tablero() {
+    Nodo4<Punto>* filaPtr = inicio;
+    while (filaPtr) {
+        Nodo4<Punto>* colPtr = filaPtr;
+        filaPtr = filaPtr->obtenerAbajo();
+        while (colPtr) {
+            Nodo4<Punto>* temp = colPtr;
+            colPtr = colPtr->obtenerDerecha();
+            delete temp;
         }
     }
 }
 
-//mostrar tablero con coordenadas alineadas
-void Tablero::mostrar() const {
-    std::cout << "\n  "; // espacio inicial para alinear con índice de filas
-
-    // Encabezado columnas (alineado a los puntos)
-    for (int j = 0; j < columnas; j++) {
-        char letra = 'A' + j;
-        std::cout << letra << "   "; // letra y un espacio
+void Tablero::crearMalla() {
+    if (filas <= 0 || columnas <= 0) {
+        inicio = nullptr;
+        return;
     }
-    std::cout << "\n";
 
-    for (int i = 0; i < filas; i++) {
-        std::cout << i << " "; // índice de fila al inicio
+    // Lista de filas
+    ListaEnlazada< ListaEnlazada<Punto>* > filasLista;
 
-        for (int j = 0; j < columnas; j++) {
-            Punto* p = buscarPunto(i, j);
-            std::cout << p->toString();
-
-            if (j < columnas - 1) {
-                Linea* l = buscarLinea(p, buscarPunto(i, j + 1));
-                std::cout << (l ? l->toString() : " ");
-            }
+    // Crear cada fila
+    for (int f = 0; f < filas; ++f) {
+        auto* filaActual = new ListaEnlazada<Punto>();
+        for (int c = 0; c < columnas; ++c) {
+            filaActual->insertarFinal(Punto(f, c));
         }
-        std::cout << "\n";
+        filasLista.insertarFinal(filaActual);
+    }
 
-        //lineas verticales + celdas
-        if (i < filas - 1) {
-            std::cout << "  "; // espacio bajo índice de fila
-            for (int j = 0; j < columnas; j++) {
-                Punto* p = buscarPunto(i, j);
-                Linea* l = buscarLinea(p, buscarPunto(i + 1, j));
-                std::cout << (l ? l->toString() : " ");
+    // Enlazar verticalmente
+    Nodo4< ListaEnlazada<Punto>* >* nodoFila = filasLista.obtenerCabeza();
+    Nodo4< ListaEnlazada<Punto>* >* nodoFilaAbajo = nodoFila ? nodoFila->obtenerDerecha() : nullptr;
 
-                if (j < columnas - 1) {
-                    Celda* c = buscarCelda(i, j);
-                    std::cout << (c ? c->toString() : " ");
-                    std::cout << " ";
-                }
-            }
-            std::cout << "\n";
+    while (nodoFila && nodoFilaAbajo) {
+        Nodo4<Punto>* nodoCol = nodoFila->obtenerDato()->obtenerCabeza();
+        Nodo4<Punto>* nodoColAbajo = nodoFilaAbajo->obtenerDato()->obtenerCabeza();
+
+        while (nodoCol && nodoColAbajo) {
+            nodoCol->establecerAbajo(nodoColAbajo);
+            nodoColAbajo->establecerArriba(nodoCol);
+
+            nodoCol = nodoCol->obtenerDerecha();
+            nodoColAbajo = nodoColAbajo->obtenerDerecha();
         }
+
+        nodoFila = nodoFilaAbajo;
+        nodoFilaAbajo = nodoFilaAbajo->obtenerDerecha();
+    }
+
+    // Guardar inicio
+    if (filasLista.obtenerCabeza()) {
+        inicio = filasLista.obtenerCabeza()->obtenerDato()->obtenerCabeza();
     }
 }
 
-//busquedas
-Punto* Tablero::buscarPunto(int fila, int col) const {
-    for (auto nodo = puntos.getCabeza(); nodo != nullptr; nodo = nodo->getSiguiente()) {
-        Punto* p = nodo->getDato();
-        if (p->getRow() == fila && p->getCol() == col) return p;
-    }
-    return nullptr;
-}
-
-Linea* Tablero::buscarLinea(Punto* p1, Punto* p2) const {
-    if (!p1 || !p2) return nullptr;
-    for (auto nodo = lineas.getCabeza(); nodo != nullptr; nodo = nodo->getSiguiente()) {
-        Linea* l = nodo->getDato();
-        if ((l->getP1() == p1 && l->getP2() == p2) || (l->getP1() == p2 && l->getP2() == p1)) {
-            return l;
+void Tablero::imprimir() const {
+    Nodo4<Punto>* filaPtr = inicio;
+    while (filaPtr) {
+        Nodo4<Punto>* colPtr = filaPtr;
+        while (colPtr) {
+            cout << colPtr->obtenerDato().simbolo() << "   ";
+            colPtr = colPtr->obtenerDerecha();
         }
+        cout << "\n\n";
+        filaPtr = filaPtr->obtenerAbajo();
     }
-    return nullptr;
 }
 
-Celda* Tablero::buscarCelda(int fila, int col) const {
-    for (auto nodo = celdas.getCabeza(); nodo != nullptr; nodo = nodo->getSiguiente()) {
-        Celda* c = nodo->getDato();
-        if (c->getRow() == fila && c->getCol() == col) return c;
+//localizar un nodo para ver si estan enlazados 
+Nodo4<Punto>* Tablero::obtenerNodo(int fila, int columna) const {
+    Nodo4<Punto>* filaPtr = inicio;
+    for (int f = 0; f < fila && filaPtr; ++f) {
+        filaPtr = filaPtr->obtenerAbajo();
     }
-    return nullptr;
+    if (!filaPtr) return nullptr;
+
+    Nodo4<Punto>* colPtr = filaPtr;
+    for (int c = 0; c < columna && colPtr; ++c) {
+        colPtr = colPtr->obtenerDerecha();
+    }
+    return colPtr;
 }
 
-int Tablero::getFilas() const {
-    return filas;
-}
+void Tablero::mostrarVecinos(int fila, int columna) const {
+    Nodo4<Punto>* nodo = obtenerNodo(fila, columna);
+    if (!nodo) {
+        cout << "No existe el nodo en (" << fila << "," << columna << ")\n";
+        return;
+    }
 
-int Tablero::getColumnas() const {
-    return columnas;
+    cout << "Vecinos de (" << fila << "," << columna << "):\n";
+    if (nodo->obtenerArriba()) 
+        cout << "  Arriba -> (" << nodo->obtenerArriba()->obtenerDato().getFila()
+             << "," << nodo->obtenerArriba()->obtenerDato().getColumna() << ")\n";
+    if (nodo->obtenerAbajo()) 
+        cout << "  Abajo -> (" << nodo->obtenerAbajo()->obtenerDato().getFila()
+             << "," << nodo->obtenerAbajo()->obtenerDato().getColumna() << ")\n";
+    if (nodo->obtenerIzquierda()) 
+        cout << "  Izquierda -> (" << nodo->obtenerIzquierda()->obtenerDato().getFila()
+             << "," << nodo->obtenerIzquierda()->obtenerDato().getColumna() << ")\n";
+    if (nodo->obtenerDerecha()) 
+        cout << "  Derecha -> (" << nodo->obtenerDerecha()->obtenerDato().getFila()
+             << "," << nodo->obtenerDerecha()->obtenerDato().getColumna() << ")\n";
 }
-
