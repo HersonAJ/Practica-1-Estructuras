@@ -39,7 +39,7 @@ void Jugador::restarPunto() {
         puntos--;
     }
 }
-
+/*
 //manejo de puntos
 bool Jugador::agregarPowerUp(TipoPowerUp powerUp) {
     if (cantidadPowerUps >= MAX_POWERUPS) {
@@ -63,7 +63,7 @@ TipoPowerUp Jugador::verSiguientePowerUp() const {
     if(cantidadPowerUps <= 0) return TipoPowerUp::NINGUNO;
     return powerUps[cantidadPowerUps - 1];
 }
-
+*/
 //color del jugador
 void Jugador::setColor(int nuevoColor) {
     color = nuevoColor;

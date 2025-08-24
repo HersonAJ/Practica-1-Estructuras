@@ -3,71 +3,36 @@
 
 #include <string>
 
-class Punto;
-class Celda;
+class Punto;  
 
-//orientacion
-enum class Orientacion{
-    HORIZONTAL, VERTICAL
-};
-
-enum class TipoPowerUp {
-    NINGUNO,
-    DL, //DOBLE LINEA
-    TS, //TRAMPA SECRETA
-    BL, //BLOQUEO
-    PS, //PASE
-    LS, //LLAVE SECRETA
-    ES, //ESCURRIDIZO
-    UF, //UNION A FUTURO
-    AC, //A QUE COSTO
-    NT, //NUEVAS TIERRAS
-    EX //EXPLOSIVOS
-};
+// Orientación de la línea
+enum class Orientacion { HORIZONTAL, VERTICAL };
 
 class Linea {
-    private:
+private:
     Punto* p1;
     Punto* p2;
-
     Orientacion orientacion;
     bool colocada;
     char jugadorColoco;
 
-    TipoPowerUp powerUp;
-    bool powerUpVisible;
-
-    Celda* celdaA;
-    Celda* celdaB;
-
-    public:
+public:
+    // Constructor
     Linea(Punto* inicio, Punto* fin, Orientacion ori);
 
+    // Getters
     Punto* getP1() const;
     Punto* getP2() const;
     Orientacion getOrientacion() const;
-
     bool estaColocada() const;
     char getJugadorColoco() const;
 
-    // Setters 
+    // Acciones
     void colocar(char inicialJugador);
     void quitar();
 
-    // PowerUp
-    void asignarPowerUp(TipoPowerUp tipo, bool visible = true);
-    TipoPowerUp getPowerUp() const;
-    bool isPowerUpVisible() const;
-    void setPowerUpVisible(bool estado);
-
-    // Celdas adyacentes
-    void setCeldaA(Celda* c);
-    void setCeldaB(Celda* c);
-    Celda* getCeldaA() const;
-    Celda* getCeldaB() const;
-
+    // Representación visual
     std::string toString() const;
-
 };
 
-#endif
+#endif // LINEA_H

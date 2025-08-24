@@ -37,7 +37,10 @@ class Nodo4 {
     void establecerDato(const Tipo& valor) {
         dato = valor;
     }
-    const Tipo& obtenerDato() { return dato; }
+
+    //sobrecargando el metodo
+Tipo& obtenerDato() { return dato; }
+const Tipo& obtenerDato() const { return dato; }
 };
 
 #endif

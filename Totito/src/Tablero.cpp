@@ -1,14 +1,17 @@
 #include "Tablero.h"
 #include "ListaEnlazada.h"
+#include "Linea.h"
 #include <iostream>
 using namespace std;
 
 Tablero::Tablero(int filas, int columnas)
     : filas(filas), columnas(columnas), inicio(nullptr) {
     crearMalla();
+    generarLineas();//ahora para generar las lineas
 }
 
 Tablero::~Tablero() {
+    // Liberar memoria de la malla
     Nodo4<Punto>* filaPtr = inicio;
     while (filaPtr) {
         Nodo4<Punto>* colPtr = filaPtr;
@@ -18,6 +21,13 @@ Tablero::~Tablero() {
             colPtr = colPtr->obtenerDerecha();
             delete temp;
         }
+    }
+
+    // Liberar memoria de las líneas
+    Nodo4<Linea*>* lineaPtr = lineas.obtenerCabeza();
+    while (lineaPtr) {
+        delete lineaPtr->obtenerDato();
+        lineaPtr = lineaPtr->obtenerDerecha();
     }
 }
 
@@ -63,6 +73,76 @@ void Tablero::crearMalla() {
     if (filasLista.obtenerCabeza()) {
         inicio = filasLista.obtenerCabeza()->obtenerDato()->obtenerCabeza();
     }
+}
+
+//metodo para generar las lineas en el tablero
+void Tablero::generarLineas() {
+    Nodo4<Punto>* filaPtr = inicio;
+
+    while (filaPtr) {
+        Nodo4<Punto>* colPtr = filaPtr;
+
+        while (colPtr) {
+            // Línea horizontal (punto con su derecha)
+            if (colPtr->obtenerDerecha()) {
+                Linea* l = new Linea(&(colPtr->obtenerDato()), &(colPtr->obtenerDerecha()->obtenerDato()), Orientacion::HORIZONTAL);
+                lineas.insertarFinal(l);
+            }
+            // Línea vertical (punto con su abajo)
+            if (colPtr->obtenerAbajo()) {
+                Linea* l = new Linea(&(colPtr->obtenerDato()), &(colPtr->obtenerAbajo()->obtenerDato()), Orientacion::VERTICAL);
+                lineas.insertarFinal(l);
+            }
+            colPtr = colPtr->obtenerDerecha();
+        }
+        filaPtr = filaPtr->obtenerAbajo();
+    }
+}
+
+// Buscar una línea entre dos puntos
+Linea* Tablero::buscarLinea(int fila1, int col1, int fila2, int col2) const {
+    Nodo4<Punto>* nodo1 = obtenerNodo(fila1, col1);
+    Nodo4<Punto>* nodo2 = obtenerNodo(fila2, col2);
+
+    if (!nodo1 || !nodo2) return nullptr;
+
+    Nodo4<Linea*>* lineaPtr = lineas.obtenerCabeza();
+    while (lineaPtr) {
+        Linea* l = lineaPtr->obtenerDato();
+        if ((l->getP1() == &(nodo1->obtenerDato()) && l->getP2() == &(nodo2->obtenerDato())) ||
+            (l->getP1() == &(nodo2->obtenerDato()) && l->getP2() == &(nodo1->obtenerDato()))) {
+            return l;
+        }
+        lineaPtr = lineaPtr->obtenerDerecha();
+    }
+    return nullptr;
+}
+
+// Colocar una línea entre dos puntos
+void Tablero::colocarLinea(int f1, int c1, int f2, int c2, char jugador) {
+    Nodo4<Punto>* n1 = obtenerNodo(f1, c1);
+    Nodo4<Punto>* n2 = obtenerNodo(f2, c2);
+
+    if (!n1 || !n2) {
+        cout << "Coordenadas inválidas.\n";
+        return;
+    }
+
+    // Buscar la línea en la lista
+    Nodo4<Linea*>* actual = lineas.obtenerCabeza();
+    while (actual) {
+        Linea* l = actual->obtenerDato();
+        if ((l->getP1() == &n1->obtenerDato() && l->getP2() == &n2->obtenerDato()) ||
+            (l->getP1() == &n2->obtenerDato() && l->getP2() == &n1->obtenerDato())) {
+            l->colocar(jugador);
+            cout << "Linea colocada entre (" << f1 << "," << c1 
+                 << ") y (" << f2 << "," << c2 << ")\n";
+            return;
+        }
+        actual = actual->obtenerDerecha();
+    }
+
+    cout << "No existe una línea entre esas coordenadas.\n";
 }
 
 void Tablero::imprimir() const {
@@ -126,4 +206,18 @@ void Tablero::mostrarVecinos(int fila, int columna) const {
     if (nodo->obtenerDerecha()) 
         cout << "  Derecha -> (" << nodo->obtenerDerecha()->obtenerDato().getFila()
              << "," << nodo->obtenerDerecha()->obtenerDato().getColumna() << ")\n";
+}
+// Mostrar todas las líneas de la lista
+void Tablero::mostrarLineas() const {
+    Nodo4<Linea*>* actual = lineas.obtenerCabeza();
+    while (actual) {
+        Linea* l = actual->obtenerDato();
+        cout << "(" << l->getP1()->getFila() << "," << l->getP1()->getColumna()
+             << ") <-> (" << l->getP2()->getFila() << "," << l->getP2()->getColumna()
+             << ") "
+             << (l->estaColocada() ? "[X]" : "[ ]")
+             << " " << l->toString()
+             << "\n";
+        actual = actual->obtenerDerecha();
+    }
 }

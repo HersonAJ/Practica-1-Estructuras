@@ -12,7 +12,7 @@ private:
     std::string nombre;
     char inicial;
     int puntos;
-    TipoPowerUp powerUps[MAX_POWERUPS];
+    //TipoPowerUp powerUps[MAX_POWERUPS];
     int cantidadPowerUps;
     int color;
 
@@ -34,10 +34,10 @@ public:
     void restarPunto();
     
     // Manejo de power-ups
-    bool agregarPowerUp(TipoPowerUp powerUp);
-    TipoPowerUp usarPowerUp();
+    //bool agregarPowerUp(TipoPowerUp powerUp);
+    //TipoPowerUp usarPowerUp();
     bool tienePowerUps() const;
-    TipoPowerUp verSiguientePowerUp() const;
+    //TipoPowerUp verSiguientePowerUp() const;
     
     // Método para cambiar color
     void setColor(int nuevoColor);
