@@ -1,55 +1,80 @@
-/*#include "Juego.h"
+#include "Juego.h"
 #include <iostream>
-#include <cctype>
+using namespace std;
 
-// Constructor
-Juego::Juego(int filas, int columnas) : tablero(filas, columnas) {
-    tablero.construir();
+Juego::Juego(Configuracion* config) : config(config), tablero(nullptr), gestor(nullptr) {}
+
+Juego::~Juego() {
+    delete tablero;
+    delete gestor;
 }
 
-// Inicia el juego mostrando el tablero vacío
-void Juego::iniciar() {
-    tablero.mostrar();
+// función auxiliar: convierte "A0" a fila y columna
+static bool parseCoordenada(const string& coord, int& fila, int& col) {
+    if (coord.size() < 2) return false;
+    col = coord[0] - 'A';  // letra → columna
+    try {
+        fila = stoi(coord.substr(1)); // número → fila
+    } catch (...) {
+        return false;
+    }
+    return true;
 }
 
-// Recibe dos coordenadas, coloca la línea si existe y actualiza el tablero
-void Juego::colocarLinea(const std::string& coord1, const std::string& coord2) {
-    Punto* p1 = parseCoordenada(coord1);
-    Punto* p2 = parseCoordenada(coord2);
+void Juego::inicializar() {
+    // crear tablero
+    tablero = new Tablero(config->getFilas(), config->getColumnas());
+    gestor = new GestorLineas(tablero->getLineas());
 
-    if (!p1 || !p2) {
-        std::cout << "Coordenadas inválidas.\n";
-        return;
+    // cargar jugadores en la cola
+    for (int i = 0; i < config->getCantidadJugadores(); i++) {
+        colaTurnos.encolar(config->getJugador(i));
     }
-
-    Linea* l = tablero.buscarLinea(p1, p2);
-    if (!l) {
-        std::cout << "No existe línea entre esos puntos.\n";
-        return;
-    }
-
-    if (l->estaColocada()) {
-        std::cout << "Esa línea ya está ocupada.\n";
-        return;
-    }
-
-    l->colocar('*'); // por ahora siempre coloca con un marcador fijo
-
-    tablero.mostrar();
 }
 
-// Convierte coordenadas tipo "A0" en Punto*
-Punto* Juego::parseCoordenada(const std::string& coord) {
-    if (coord.size() < 2) return nullptr;
+void Juego::jugar() {
+    bool continuar = true;
 
-    char letra = std::toupper(coord[0]);
-    int col = letra - 'A';
+    while (continuar) {
+        system("clear");
+        tablero->imprimir();
+        config->mostrarJugadores();
 
-    int fila = coord[1] - '0';
-    if (coord.size() == 3 && isdigit(coord[2])) { // soportar dos dígitos (ej: A10)
-        fila = fila * 10 + (coord[2] - '0');
+        // 🔍 Mostrar todas las líneas antes del turno
+        std::cout << "\n=== DEBUG: Líneas actuales ===\n";
+        gestor->mostrarLineas();
+        std::cout << "==============================\n";
+
+        Jugador* jugadorActual = colaTurnos.desencolar();
+        if (!jugadorActual) break;
+
+        std::cout << "\nTurno de: " << jugadorActual->getNombre() 
+                  << " (" << jugadorActual->getInicial() << ")\n";
+
+        std::string entrada1, entrada2;
+        std::cout << "Ingrese primera coordenada (ej: A0 o 'salir'): ";
+        std::cin >> entrada1;
+        if (entrada1 == "salir") break;
+
+        std::cout << "Ingrese segunda coordenada (ej: A1): ";
+        std::cin >> entrada2;
+        if (entrada2 == "salir") break;
+
+        int f1, c1, f2, c2;
+        if (parseCoordenada(entrada1, f1, c1) && parseCoordenada(entrada2, f2, c2)) {
+            gestor->colocarLinea(f1, c1, f2, c2, jugadorActual->getInicial());
+        } else {
+            std::cout << "Coordenadas inválidas.\n";
+        }
+
+        // 🔍 Mostrar todas las líneas después del turno
+        std::cout << "\n=== DEBUG: Líneas después del turno ===\n";
+        gestor->mostrarLineas();
+        std::cout << "=======================================\n";
+
+        colaTurnos.encolar(jugadorActual);
     }
 
-    return tablero.buscarPunto(fila, col);
+    std::cout << "\nJuego terminado.\n";
 }
-*/
+

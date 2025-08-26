@@ -6,8 +6,10 @@ using namespace std;
 
 Tablero::Tablero(int filas, int columnas)
     : filas(filas), columnas(columnas), inicio(nullptr) {
+
+        std::cout << "DEBUG_TABLERO: constructor simplificado" << std::endl;
     crearMalla();
-    generarLineas();//ahora para generar las lineas
+    generarLineas(); // Genera las líneas que pertenecen al tablero
 }
 
 Tablero::~Tablero() {
@@ -37,7 +39,7 @@ void Tablero::crearMalla() {
         return;
     }
 
-    // Lista de filas
+    // Lista temporal de filas
     ListaEnlazada< ListaEnlazada<Punto>* > filasLista;
 
     // Crear cada fila
@@ -65,17 +67,19 @@ void Tablero::crearMalla() {
             nodoColAbajo = nodoColAbajo->obtenerDerecha();
         }
 
+        // Avanzar UNA fila hacia abajo
         nodoFila = nodoFilaAbajo;
         nodoFilaAbajo = nodoFilaAbajo->obtenerDerecha();
     }
 
-    // Guardar inicio
+    // Guardar inicio (primer punto de la primera fila)
     if (filasLista.obtenerCabeza()) {
         inicio = filasLista.obtenerCabeza()->obtenerDato()->obtenerCabeza();
     }
 }
 
-//metodo para generar las lineas en el tablero
+
+
 void Tablero::generarLineas() {
     Nodo4<Punto>* filaPtr = inicio;
 
@@ -99,79 +103,38 @@ void Tablero::generarLineas() {
     }
 }
 
-// Buscar una línea entre dos puntos
-Linea* Tablero::buscarLinea(int fila1, int col1, int fila2, int col2) const {
-    Nodo4<Punto>* nodo1 = obtenerNodo(fila1, col1);
-    Nodo4<Punto>* nodo2 = obtenerNodo(fila2, col2);
-
-    if (!nodo1 || !nodo2) return nullptr;
-
-    Nodo4<Linea*>* lineaPtr = lineas.obtenerCabeza();
-    while (lineaPtr) {
-        Linea* l = lineaPtr->obtenerDato();
-        if ((l->getP1() == &(nodo1->obtenerDato()) && l->getP2() == &(nodo2->obtenerDato())) ||
-            (l->getP1() == &(nodo2->obtenerDato()) && l->getP2() == &(nodo1->obtenerDato()))) {
-            return l;
-        }
-        lineaPtr = lineaPtr->obtenerDerecha();
-    }
-    return nullptr;
-}
-
-// Colocar una línea entre dos puntos
-void Tablero::colocarLinea(int f1, int c1, int f2, int c2, char jugador) {
-    Nodo4<Punto>* n1 = obtenerNodo(f1, c1);
-    Nodo4<Punto>* n2 = obtenerNodo(f2, c2);
-
-    if (!n1 || !n2) {
-        cout << "Coordenadas inválidas.\n";
-        return;
-    }
-
-    // Buscar la línea en la lista
-    Nodo4<Linea*>* actual = lineas.obtenerCabeza();
-    while (actual) {
-        Linea* l = actual->obtenerDato();
-        if ((l->getP1() == &n1->obtenerDato() && l->getP2() == &n2->obtenerDato()) ||
-            (l->getP1() == &n2->obtenerDato() && l->getP2() == &n1->obtenerDato())) {
-            l->colocar(jugador);
-            cout << "Linea colocada entre (" << f1 << "," << c1 
-                 << ") y (" << f2 << "," << c2 << ")\n";
-            return;
-        }
-        actual = actual->obtenerDerecha();
-    }
-
-    cout << "No existe una línea entre esas coordenadas.\n";
-}
-
 void Tablero::imprimir() const {
-    // Encabezado de columnas (letras)
-    cout << "    "; // espacio inicial para alinear con números de filas
-    for (int c = 0; c < columnas; c++) {
-        char letra = 'A' + c;
-        cout << letra << "   ";
+    // Encabezado de columnas
+    cout << "    ";
+    for (int c = 0; c < columnas; ++c) {
+        cout << char('A' + c) << "   ";
     }
     cout << "\n\n";
 
-    // Recorrido por filas
-    Nodo4<Punto>* filaPtr = inicio;
-    int filaIndice = 0;
-    while (filaPtr) {
-        cout << filaIndice << "   "; // imprimir número de fila
-
-        Nodo4<Punto>* colPtr = filaPtr;
-        while (colPtr) {
-            cout << colPtr->obtenerDato().simbolo() << "   ";
-            colPtr = colPtr->obtenerDerecha();
+    for (int f = 0; f < filas; ++f) {
+        // Fila de puntos + horizontales
+        cout << f << "   ";
+        for (int c = 0; c < columnas; ++c) {
+            cout << "o";
+            if (c < columnas - 1) {
+                cout << (existeLineaColocada(f, c, f, c + 1) ? "---" : "   ");
+            }
         }
-        cout << "\n\n";
-        filaPtr = filaPtr->obtenerAbajo();
-        filaIndice++;
+        cout << "\n";
+
+        // Fila de verticales (solo si no es la última fila)
+        if (f < filas - 1) {
+            cout << "    ";
+            for (int c = 0; c < columnas; ++c) {
+                cout << (existeLineaColocada(f, c, f + 1, c) ? "|" : " ");
+                if (c < columnas - 1) cout << "   ";
+            }
+            cout << "\n\n";
+        }
     }
 }
 
-//localizar un nodo para ver si estan enlazados 
+
 Nodo4<Punto>* Tablero::obtenerNodo(int fila, int columna) const {
     Nodo4<Punto>* filaPtr = inicio;
     for (int f = 0; f < fila && filaPtr; ++f) {
@@ -207,17 +170,22 @@ void Tablero::mostrarVecinos(int fila, int columna) const {
         cout << "  Derecha -> (" << nodo->obtenerDerecha()->obtenerDato().getFila()
              << "," << nodo->obtenerDerecha()->obtenerDato().getColumna() << ")\n";
 }
-// Mostrar todas las líneas de la lista
-void Tablero::mostrarLineas() const {
+
+bool Tablero::existeLineaColocada(int f1, int c1, int f2, int c2) const {
     Nodo4<Linea*>* actual = lineas.obtenerCabeza();
     while (actual) {
         Linea* l = actual->obtenerDato();
-        cout << "(" << l->getP1()->getFila() << "," << l->getP1()->getColumna()
-             << ") <-> (" << l->getP2()->getFila() << "," << l->getP2()->getColumna()
-             << ") "
-             << (l->estaColocada() ? "[X]" : "[ ]")
-             << " " << l->toString()
-             << "\n";
+        int lf1 = l->getP1()->getFila();
+        int lc1 = l->getP1()->getColumna();
+        int lf2 = l->getP2()->getFila();
+        int lc2 = l->getP2()->getColumna();
+
+        if (((lf1 == f1 && lc1 == c1 && lf2 == f2 && lc2 == c2) ||
+             (lf1 == f2 && lc1 == c2 && lf2 == f1 && lc2 == c1))
+            && l->estaColocada()) {
+            return true;
+        }
         actual = actual->obtenerDerecha();
     }
+    return false;
 }

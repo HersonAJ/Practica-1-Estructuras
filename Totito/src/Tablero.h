@@ -18,18 +18,18 @@ private:
 
     Nodo4<Punto>* obtenerNodo(int fila, int columna) const;
 
+    //metodo para verificar si una lista ya esta colocada 
+    bool existeLineaColocada(int f1, int c1, int f2, int c2) const;
+
 public:
     Tablero(int filas, int columnas);
     ~Tablero();
 
     void imprimir() const;
     void mostrarVecinos(int fila, int columna) const;
-
-    // === Gestión de líneas ===
-    Linea* buscarLinea(int fila1, int col1, int fila2, int col2) const;
-    void colocarLinea(int fila1, int col1, int fila2, int col2, char jugador);
     void generarLineas(); // genera todas las lineas horizontales y verticales
-    void mostrarLineas() const;
+
+    ListaEnlazada<Linea*>* getLineas() { return &lineas; }
 };
 
 #endif

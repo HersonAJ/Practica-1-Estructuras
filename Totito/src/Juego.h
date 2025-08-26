@@ -1,21 +1,24 @@
 #ifndef JUEGO_H
-#define JUEGO_h
+#define JUEGO_H
 
+#include "Configuracion.h"
 #include "Tablero.h"
-#include <string>
+#include "GestorLineas.h"
+#include "Cola.h"
 
 class Juego {
-    private:
-    Tablero tablero;
+private:
+    Configuracion* config;
+    Tablero* tablero;
+    GestorLineas* gestor;
+    Cola<Jugador*> colaTurnos; // cola de jugadores
 
-    public:
-    Juego(int filas, int columnas);
+public:
+    Juego(Configuracion* config);
+    ~Juego();
 
-    void iniciar();
-    void colocarLinea(const std::string& coord1, const std::string& coord2);
-
-    private:
-    Punto* parseCoordenada(const std::string& coord);
+    void inicializar();
+    void jugar(); // bucle principal
 };
 
 #endif
