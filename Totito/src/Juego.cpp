@@ -101,7 +101,7 @@ void Juego::jugar() {
     std::cout << "\nJuego terminado.\n";
         // Evaluar condiciones de victoria
         CondicionesVictoria condiciones(tablero, config->getListaJugadores());
-        Jugador* ganador = condiciones.obtenerGanador();
+        Jugador* ganador = condiciones.obtenerGanador(this->tablero);
 
         std::cout << "\nResultado final:\n";
         if (ganador != nullptr) {

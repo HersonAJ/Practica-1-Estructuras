@@ -39,6 +39,7 @@ public:
     void verificarCeldasPorLinea(Linea* linea, Jugador* jugador);
     //metodos de depuracion 
     //void debugPuntosDeCelda(int filaCelda, int colCelda) const;
+    Nodo4<Celda>* getInicioCeldas() const { return inicioCeldas;}
 };
 
 #endif

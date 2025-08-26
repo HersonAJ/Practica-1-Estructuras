@@ -11,10 +11,11 @@ private:
     ListaEnlazada<Jugador*>* jugadores;
 
     ListaEnlazada<Jugador*>* filtrarPorPuntos(ListaEnlazada<Jugador*>* candidatos);
+    ListaEnlazada<Jugador*> filtrarPorCuadradosTotales(Tablero* tablero, ListaEnlazada<Jugador*> jugadores);
 
 public:
     CondicionesVictoria(Tablero* tablero, ListaEnlazada<Jugador*>* jugadores);
-    Jugador* obtenerGanador();
+    Jugador* obtenerGanador(Tablero* tablero);
 };
 
 #endif
