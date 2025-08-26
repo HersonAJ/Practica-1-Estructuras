@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Utilidades.h"
 #include <limits>
+#include "CondicionesVictoria.h"
 using namespace std;
 
 Juego::Juego(Configuracion* config) : config(config), tablero(nullptr), gestor(nullptr) {}
@@ -98,6 +99,20 @@ void Juego::jugar() {
     }
 
     std::cout << "\nJuego terminado.\n";
+        // Evaluar condiciones de victoria
+        CondicionesVictoria condiciones(tablero, config->getListaJugadores());
+        Jugador* ganador = condiciones.obtenerGanador();
+
+        std::cout << "\nResultado final:\n";
+        if (ganador != nullptr) {
+            std::cout << "\nGanador: " << ganador->getNombre()
+                    << " (" << ganador->getInicial() << ") con "
+                    << ganador->getPuntos() << " puntos.\n";
+        } else {
+            std::cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
+        }
+
+
 }
 
 

@@ -3,6 +3,7 @@
 
 #include "Jugador.h"
 #include <iostream>
+#include "ListaEnlazada.h"
 
 #define MAX_JUGADORES 10
 
@@ -11,7 +12,7 @@ private:
     int filas;
     int columnas;
     Jugador* jugadores[MAX_JUGADORES];
-    int cantidadJugadores;
+    int cantidadJugadores;  
 
 public:
     Configuracion();
@@ -26,6 +27,8 @@ public:
     int getColumnas() const;
     int getCantidadJugadores() const;
     Jugador* getJugador(int i) const;
+
+    ListaEnlazada<Jugador*>* getListaJugadores() const;
 };
 
 #endif // CONFIGURACION_H

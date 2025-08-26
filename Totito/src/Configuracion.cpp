@@ -49,6 +49,15 @@ void Configuracion::mostrarJugadores() const {
     }
 }
 
+ListaEnlazada<Jugador*>* Configuracion::getListaJugadores() const {
+    ListaEnlazada<Jugador*>* lista = new ListaEnlazada<Jugador*>();
+    for (int i = 0; i < cantidadJugadores; i++) {
+        lista->insertarFinal(jugadores[i]);
+    }
+    return lista;
+}
+
+
 int Configuracion::getFilas() const { return filas; }
 int Configuracion::getColumnas() const { return columnas; }
 int Configuracion::getCantidadJugadores() const { return cantidadJugadores; }
