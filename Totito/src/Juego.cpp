@@ -24,7 +24,7 @@ static bool parseCoordenada(const string& coord, int& fila, int& col) {
 void Juego::inicializar() {
     // crear tablero
     tablero = new Tablero(config->getFilas(), config->getColumnas());
-    gestor = new GestorLineas(tablero->getLineas());
+    gestor = new GestorLineas(tablero->getLineas(), tablero);
 
     // cargar jugadores en la cola
     for (int i = 0; i < config->getCantidadJugadores(); i++) {
@@ -37,10 +37,11 @@ void Juego::jugar() {
 
     while (continuar) {
         system("clear");
+        tablero->debugCeldas();
         tablero->imprimir();
         config->mostrarJugadores();
 
-        // 🔍 Mostrar todas las líneas antes del turno
+        // Mostrar todas las líneas antes del turno
         std::cout << "\n=== DEBUG: Líneas actuales ===\n";
         gestor->mostrarLineas();
         std::cout << "==============================\n";
@@ -62,12 +63,17 @@ void Juego::jugar() {
 
         int f1, c1, f2, c2;
         if (parseCoordenada(entrada1, f1, c1) && parseCoordenada(entrada2, f2, c2)) {
-            gestor->colocarLinea(f1, c1, f2, c2, jugadorActual->getInicial());
+            gestor->colocarLinea(f1, c1, f2, c2, jugadorActual);
+
+            //para ver el estado actual de las celdas
+            std::cout << " \n=== debug del estado de las celdas tras cada jugada ==\n";
+            tablero->debugCeldas();
+            std::cout << "====================================================\n";
         } else {
             std::cout << "Coordenadas inválidas.\n";
         }
 
-        // 🔍 Mostrar todas las líneas después del turno
+        // Mostrar todas las líneas después del turno
         std::cout << "\n=== DEBUG: Líneas después del turno ===\n";
         gestor->mostrarLineas();
         std::cout << "=======================================\n";

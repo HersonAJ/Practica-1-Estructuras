@@ -33,6 +33,8 @@ public:
 
     // Representación visual
     std::string toString() const;
+    //hasta aqui esta funcionando bien
+    bool conecta(const Punto* a, const Punto* b) const;
 };
 
 #endif // LINEA_H

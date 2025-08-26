@@ -6,18 +6,21 @@
 #include "Punto.h"
 #include "Nodo4.h"
 #include <iostream>
+#include "Tablero.h"
 
 class GestorLineas {
     private:
     ListaEnlazada<Linea*>* lineas; //lista de lineas del tablero
+    Tablero* tablero;
 
     public:
     //constructor que recibe la lista de lineas que genera el tablero
-    GestorLineas(ListaEnlazada<Linea*>* lineas);
+    //eliminar el tablero del constructor si falla
+    GestorLineas(ListaEnlazada<Linea*>* lineas, Tablero* tablero);
 
     //metodos de gestion
     Linea* buscarLinea(int fila1, int col1, int fila2, int col2) const;
-    void colocarLinea(int fila1, int col1, int fila2, int col2, char jugador);
+    void colocarLinea(int fila1, int col1, int fila2, int col2, Jugador* jugador);
     void mostrarLineas() const;
 };
 

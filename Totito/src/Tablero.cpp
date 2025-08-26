@@ -10,6 +10,7 @@ Tablero::Tablero(int filas, int columnas)
         std::cout << "DEBUG_TABLERO: constructor simplificado" << std::endl;
     crearMalla();
     generarLineas(); // Genera las líneas que pertenecen al tablero
+    generarCeldas();
 }
 
 Tablero::~Tablero() {
@@ -111,6 +112,8 @@ void Tablero::imprimir() const {
     }
     cout << "\n\n";
 
+    Nodo4<Celda>* filaCelda = inicioCeldas;
+
     for (int f = 0; f < filas; ++f) {
         // Fila de puntos + horizontales
         cout << f << "   ";
@@ -122,17 +125,29 @@ void Tablero::imprimir() const {
         }
         cout << "\n";
 
-        // Fila de verticales (solo si no es la última fila)
+        // Fila de verticales + iniciales de propietario (solo si no es la última fila de puntos)
         if (f < filas - 1) {
             cout << "    ";
+            Nodo4<Celda>* celdaPtr = filaCelda;
             for (int c = 0; c < columnas; ++c) {
+                // Línea vertical izquierda de la celda
                 cout << (existeLineaColocada(f, c, f + 1, c) ? "|" : " ");
-                if (c < columnas - 1) cout << "   ";
+
+                // Espacio central: inicial del propietario si existe
+                if (c < columnas - 1) {
+                    char inicial = celdaPtr ? celdaPtr->obtenerDato().obtenerInicialPropietario() : ' ';
+                    cout << " " << inicial << " ";
+                    celdaPtr = celdaPtr ? celdaPtr->obtenerDerecha() : nullptr;
+                }
             }
             cout << "\n\n";
+
+            // Avanzar a la siguiente fila de celdas
+            if (filaCelda) filaCelda = filaCelda->obtenerAbajo();
         }
     }
 }
+
 
 
 Nodo4<Punto>* Tablero::obtenerNodo(int fila, int columna) const {
@@ -189,3 +204,113 @@ bool Tablero::existeLineaColocada(int f1, int c1, int f2, int c2) const {
     }
     return false;
 }
+
+//hasta aqui esta funcionando bien 
+void Tablero::generarCeldas() {
+    if (filas < 2 || columnas < 2) {
+        inicioCeldas = nullptr;
+        return;
+    }
+
+    Nodo4<Punto>* filaPunto = inicio;
+    Nodo4<Celda>* filaCeldaInicio = nullptr;
+    Nodo4<Celda>* filaCeldaAnterior = nullptr;
+
+    for (int f = 0; f < filas - 1; ++f) {
+        Nodo4<Punto>* colPunto = filaPunto;
+        Nodo4<Celda>* nodoCeldaAnterior = nullptr;
+
+        for (int c = 0; c < columnas - 1; ++c) {
+            // Puntos de la celda
+            Punto* supIzq = &(colPunto->obtenerDato());
+            Punto* supDer = &(colPunto->obtenerDerecha()->obtenerDato());
+            Punto* infIzq = &(colPunto->obtenerAbajo()->obtenerDato());
+            Punto* infDer = &(colPunto->obtenerAbajo()->obtenerDerecha()->obtenerDato());
+
+            // Líneas de la celda (buscadas en la lista global)
+            Linea* arriba = nullptr;
+            Linea* derecha = nullptr;
+            Linea* abajo = nullptr;
+            Linea* izquierda = nullptr;
+
+            Nodo4<Linea*>* actual = lineas.obtenerCabeza();
+            while (actual) {
+                Linea* l = actual->obtenerDato();
+                if (l->conecta(supIzq, supDer)) arriba = l;
+                else if (l->conecta(supDer, infDer)) derecha = l;
+                else if (l->conecta(infIzq, infDer)) abajo = l;
+                else if (l->conecta(supIzq, infIzq)) izquierda = l;
+                actual = actual->obtenerDerecha();
+            }
+
+            // Crear celda
+            Celda nuevaCelda(f, c, supIzq, supDer, infIzq, infDer, arriba, derecha, abajo, izquierda);
+            Nodo4<Celda>* nodoCelda = new Nodo4<Celda>(nuevaCelda);
+
+            // Enlazar horizontalmente
+            if (nodoCeldaAnterior) {
+                nodoCeldaAnterior->establecerDerecha(nodoCelda);
+                nodoCelda->establecerIzquierda(nodoCeldaAnterior);
+            } else if (!filaCeldaInicio) {
+                filaCeldaInicio = nodoCelda;
+            }
+
+            // Enlazar verticalmente
+            if (filaCeldaAnterior) {
+                Nodo4<Celda>* nodoArriba = filaCeldaAnterior;
+                for (int k = 0; k < c; ++k) nodoArriba = nodoArriba->obtenerDerecha();
+                nodoArriba->establecerAbajo(nodoCelda);
+                nodoCelda->establecerArriba(nodoArriba);
+            }
+
+            nodoCeldaAnterior = nodoCelda;
+            colPunto = colPunto->obtenerDerecha();
+        }
+
+        filaCeldaAnterior = filaCeldaInicio;
+        for (int k = 0; k < f; ++k) filaCeldaAnterior = filaCeldaAnterior->obtenerAbajo();
+        filaPunto = filaPunto->obtenerAbajo();
+    }
+
+    inicioCeldas = filaCeldaInicio;
+}
+
+void Tablero::debugCeldas() const {
+    int total = 0;
+    Nodo4<Celda>* filaCelda = inicioCeldas;
+
+    cout << "=== DEBUG: Estado de Celdas ===\n";
+    while (filaCelda) {
+        Nodo4<Celda>* celdaPtr = filaCelda;
+        while (celdaPtr) {
+            const Celda& celda = celdaPtr->obtenerDato();
+            cout << "Celda (" << celda.getFila() << "," << celda.getColumna() << ") "
+                 << (celda.estaCompletada() ? "[COMPLETA]" : "[INCOMPLETA]")
+                 << " Propietario: '" << celda.obtenerInicialPropietario() << "'\n";
+            total++;
+            celdaPtr = celdaPtr->obtenerDerecha();
+        }
+        filaCelda = filaCelda->obtenerAbajo();
+    }
+    cout << "Total de celdas: " << total << "\n";
+    cout << "==============================\n";
+}
+
+//eliminar si falla, lo de arriba esta bien 
+void Tablero::verificarCeldasPorLinea(Linea* linea, Jugador* jugador) {
+    Nodo4<Celda>* filaCelda = inicioCeldas;
+    while (filaCelda) {
+        Nodo4<Celda>* celdaPtr = filaCelda;
+        while (celdaPtr) {
+            Celda& celda = celdaPtr->obtenerDato();
+            if (celda.contieneLinea(linea) && !celda.estaCompletada()) {
+                if (celda.verificarCompletada()) {
+                    celda.capturar(jugador);
+                }
+            }
+            celdaPtr = celdaPtr->obtenerDerecha();
+        }
+        filaCelda = filaCelda->obtenerAbajo();
+    }
+}
+

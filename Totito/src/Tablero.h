@@ -5,6 +5,7 @@
 #include "Punto.h"
 #include "Linea.h"
 #include "ListaEnlazada.h"
+#include "Celda.h"
 
 class Tablero {
 private:
@@ -13,6 +14,7 @@ private:
     Nodo4<Punto>* inicio; // nodo de la esquina superior izquierda
 
     ListaEnlazada<Linea*> lineas; // TODAS las posibles líneas del tablero
+    Nodo4<Celda>* inicioCeldas;
 
     void crearMalla();
 
@@ -28,8 +30,13 @@ public:
     void imprimir() const;
     void mostrarVecinos(int fila, int columna) const;
     void generarLineas(); // genera todas las lineas horizontales y verticales
+    void generarCeldas();// hasta aqui esta funcionando bien 
 
     ListaEnlazada<Linea*>* getLineas() { return &lineas; }
+    void debugCeldas() const;
+
+    //eliminar si algo falla
+    void verificarCeldasPorLinea(Linea* linea, Jugador* jugador);
 };
 
 #endif

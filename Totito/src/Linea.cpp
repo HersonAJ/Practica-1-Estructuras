@@ -31,3 +31,7 @@ std::string Linea::toString() const {
     }
     return (orientacion == Orientacion::HORIZONTAL) ? "---" : "|";
 }
+//hasta aqui esta funcionando bien 
+bool Linea::conecta(const Punto* a, const Punto* b) const {
+    return ( (p1 == a && p2 == b) || (p1 == b && p2 == a) );
+}

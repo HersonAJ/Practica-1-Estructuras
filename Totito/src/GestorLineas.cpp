@@ -1,7 +1,8 @@
 #include "GestorLineas.h"
+#include <iostream>
 
-GestorLineas::GestorLineas(ListaEnlazada<Linea*>* lineas)
-    : lineas(lineas) {}
+GestorLineas::GestorLineas(ListaEnlazada<Linea*>* lineas, Tablero* tablero)
+    : lineas(lineas), tablero(tablero) {}
 
 // Buscar una línea entre dos puntos
 Linea* GestorLineas::buscarLinea(int fila1, int col1, int fila2, int col2) const {
@@ -19,13 +20,20 @@ Linea* GestorLineas::buscarLinea(int fila1, int col1, int fila2, int col2) const
     return nullptr;
 }
 
-// Colocar una línea entre dos puntos
-void GestorLineas::colocarLinea(int f1, int c1, int f2, int c2, char jugador) {
+// Colocar una línea y verificar celdas
+void GestorLineas::colocarLinea(int f1, int c1, int f2, int c2, Jugador* jugador) {
     Linea* l = buscarLinea(f1, c1, f2, c2);
     if (l) {
-        l->colocar(jugador);
-        std::cout << "Linea colocada entre (" << f1 << "," << c1 
-                  << ") y (" << f2 << "," << c2 << ")\n";
+        if (!l->estaColocada()) {
+            l->colocar(jugador->getInicial());
+            std::cout << "Línea colocada entre (" << f1 << "," << c1 
+                      << ") y (" << f2 << "," << c2 << ")\n";
+
+            // Verificar si alguna celda se completó con esta línea
+            tablero->verificarCeldasPorLinea(l, jugador);
+        } else {
+            std::cout << "Esa línea ya está colocada.\n";
+        }
     } else {
         std::cout << "No existe una línea entre esas coordenadas.\n";
     }

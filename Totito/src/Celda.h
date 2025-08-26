@@ -1,69 +1,61 @@
 #ifndef CELDA_H
 #define CELDA_H
 
-#include <string>
+#include "Punto.h"
+#include "Linea.h"
+#include "Jugador.h"
 
-class Linea;
-
-// Tipos de PowerUp que pueden estar en una celda
-enum class TipoPowerUpCelda {
-    NINGUNO,
-    DL, TS, BL, PS, LS, ES, UF, AC, NT, EX
-};
+class PowerUp;
 
 class Celda {
 private:
-    int row; 
-    int col; 
+    // Posición lógica de la celda (fila y columna de su esquina superior izquierda)
+    int fila;
+    int columna;
 
-    // Líneas que forman el cuadro
-    Linea* lineaArriba;
-    Linea* lineaAbajo;
-    Linea* lineaIzquierda;
-    Linea* lineaDerecha;
+    Punto* esquinas[4];  // 0: supIzq, 1: supDer, 2: infIzq, 3: infDer
 
-    // Estado de la celda
+    // Líneas que forman la celda
+    Linea* lineas[4];    // 0: arriba, 1: derecha, 2: abajo, 3: izquierda
+
+    // Estado
     bool completada;
-    char propietario; // inicial del jugador
+    Jugador* propietario;
 
-    // PowerUp (si existe dentro de la celda)
-    TipoPowerUpCelda powerUp;
-    bool powerUpVisible;
+    // PowerUp (aún no implementado)
+    PowerUp* powerUp;
 
 public:
-    Celda(int fila, int columna);
+    // Constructor por defecto
+    Celda()
+        : fila(0), columna(0),
+          esquinas{nullptr, nullptr, nullptr, nullptr},
+          lineas{nullptr, nullptr, nullptr, nullptr},
+          completada(false), propietario(nullptr), powerUp(nullptr) {}
 
-    // Getters y setters
-    int getRow() const;
-    int getCol() const;
+    Celda(int fila, int columna,
+          Punto* supIzq, Punto* supDer, Punto* infIzq, Punto* infDer,
+          Linea* arriba, Linea* derecha, Linea* abajo, Linea* izquierda);
+
+    // Getters
+    int getFila() const;
+    int getColumna() const;
+    Jugador* getPropietario() const;
     bool estaCompletada() const;
-    char getPropietario() const;
+    Punto* getEsquina(int indice) const;
+    Linea* getLinea(int indice) const;
 
-    void setPropietario(char inicialJugador);
-    void setCompletada(bool estado);
-
-    // Asignación de líneas
-    void setLineaArriba(Linea* l);
-    void setLineaAbajo(Linea* l);
-    void setLineaIzquierda(Linea* l);
-    void setLineaDerecha(Linea* l);
-
-    Linea* getLineaArriba() const;
-    Linea* getLineaAbajo() const;
-    Linea* getLineaIzquierda() const;
-    Linea* getLineaDerecha() const;
+    // Lógica
+    bool verificarCompletada() const; // Solo verifica, no captura
+    void capturar(Jugador* jugador);  // Marca como completada y asigna propietario
+    bool contieneLinea(Linea* linea) const;
 
     // PowerUp
-    void asignarPowerUp(TipoPowerUpCelda tipo, bool visible = true);
-    TipoPowerUpCelda getPowerUp() const;
-    bool isPowerUpVisible() const;
-    void setPowerUpVisible(bool estado);
+    void asignarPowerUp(PowerUp* p); 
+    PowerUp* getPowerUp() const;
 
-
-    bool verificarCompleta() const;
-
-
-    std::string toString() const;
+    // Representación
+    char obtenerInicialPropietario() const;
 };
 
-#endif // CELDA_H
+#endif
