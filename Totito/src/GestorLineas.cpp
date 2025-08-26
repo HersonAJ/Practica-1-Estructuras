@@ -21,22 +21,22 @@ Linea* GestorLineas::buscarLinea(int fila1, int col1, int fila2, int col2) const
 }
 
 // Colocar una línea y verificar celdas
-void GestorLineas::colocarLinea(int f1, int c1, int f2, int c2, Jugador* jugador) {
+bool GestorLineas::colocarLinea(int f1, int c1, int f2, int c2, Jugador* jugador) {
     Linea* l = buscarLinea(f1, c1, f2, c2);
-    if (l) {
-        if (!l->estaColocada()) {
-            l->colocar(jugador->getInicial());
-            std::cout << "Línea colocada entre (" << f1 << "," << c1 
-                      << ") y (" << f2 << "," << c2 << ")\n";
-
-            // Verificar si alguna celda se completó con esta línea
-            tablero->verificarCeldasPorLinea(l, jugador);
-        } else {
-            std::cout << "Esa línea ya está colocada.\n";
-        }
-    } else {
+    if (!l) {
         std::cout << "No existe una línea entre esas coordenadas.\n";
+        return false;
     }
+    if (l->estaColocada()) {
+        std::cout << "Esa línea ya está colocada. Intenta otra en el siguiente turno. \n";
+        return false;
+    }
+
+    l->colocar(jugador->getInicial());
+    std::cout << "Línea colocada entre (" << f1 << "," << c1 
+              << ") y (" << f2 << "," << c2 << ")\n";
+    tablero->verificarCeldasPorLinea(l, jugador);
+    return true;
 }
 
 // Mostrar todas las líneas
@@ -52,4 +52,15 @@ void GestorLineas::mostrarLineas() const {
                   << "\n";
         actual = actual->obtenerDerecha();
     }
+}
+
+bool GestorLineas::todasLasLineasColocadas() const {
+    Nodo4<Linea*>* actual = lineas->obtenerCabeza();
+    while (actual) {
+        if (!actual->obtenerDato()->estaColocada()) {
+            return false;
+        }
+        actual = actual->obtenerDerecha();
+    }
+    return true;
 }

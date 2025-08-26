@@ -18,7 +18,7 @@ private:
 
     void crearMalla();
 
-    Nodo4<Punto>* obtenerNodo(int fila, int columna) const;
+    //Nodo4<Punto>* obtenerNodo(int fila, int columna) const;
 
     //metodo para verificar si una lista ya esta colocada 
     bool existeLineaColocada(int f1, int c1, int f2, int c2) const;
@@ -28,15 +28,17 @@ public:
     ~Tablero();
 
     void imprimir() const;
-    void mostrarVecinos(int fila, int columna) const;
+    //void mostrarVecinos(int fila, int columna) const;
     void generarLineas(); // genera todas las lineas horizontales y verticales
     void generarCeldas();// hasta aqui esta funcionando bien 
 
     ListaEnlazada<Linea*>* getLineas() { return &lineas; }
-    void debugCeldas() const;
+    //void debugCeldas() const;
 
     //eliminar si algo falla
     void verificarCeldasPorLinea(Linea* linea, Jugador* jugador);
+    //metodos de depuracion 
+    //void debugPuntosDeCelda(int filaCelda, int colCelda) const;
 };
 
 #endif

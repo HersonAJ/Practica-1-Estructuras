@@ -1,5 +1,7 @@
 #include "Juego.h"
 #include <iostream>
+#include "Utilidades.h"
+#include <limits>
 using namespace std;
 
 Juego::Juego(Configuracion* config) : config(config), tablero(nullptr), gestor(nullptr) {}
@@ -36,20 +38,21 @@ void Juego::jugar() {
     bool continuar = true;
 
     while (continuar) {
-        system("clear");
-        tablero->debugCeldas();
+        limpiarPantalla(); 
+
+        // Mostrar estado actual
         tablero->imprimir();
         config->mostrarJugadores();
 
-        // Mostrar todas las líneas antes del turno
-        std::cout << "\n=== DEBUG: Líneas actuales ===\n";
-        gestor->mostrarLineas();
-        std::cout << "==============================\n";
+        if (colaTurnos.esVacio()) {
+            std::cout << "No hay más jugadores.\n";
+            break;
+        }
 
+        // Sacamos al jugador actual
         Jugador* jugadorActual = colaTurnos.desencolar();
-        if (!jugadorActual) break;
 
-        std::cout << "\nTurno de: " << jugadorActual->getNombre() 
+        std::cout << "\nTurno de: " << jugadorActual->getNombre()
                   << " (" << jugadorActual->getInicial() << ")\n";
 
         std::string entrada1, entrada2;
@@ -62,25 +65,39 @@ void Juego::jugar() {
         if (entrada2 == "salir") break;
 
         int f1, c1, f2, c2;
-        if (parseCoordenada(entrada1, f1, c1) && parseCoordenada(entrada2, f2, c2)) {
-            gestor->colocarLinea(f1, c1, f2, c2, jugadorActual);
-
-            //para ver el estado actual de las celdas
-            std::cout << " \n=== debug del estado de las celdas tras cada jugada ==\n";
-            tablero->debugCeldas();
-            std::cout << "====================================================\n";
-        } else {
+        if (!parseCoordenada(entrada1, f1, c1) || !parseCoordenada(entrada2, f2, c2)) {
             std::cout << "Coordenadas inválidas.\n";
+            std::cout << "Presione Enter para continuar...";
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cin.get();
+            colaTurnos.encolar(jugadorActual); // turno pasa al siguiente
+            continue;
         }
 
-        // Mostrar todas las líneas después del turno
-        std::cout << "\n=== DEBUG: Líneas después del turno ===\n";
-        gestor->mostrarLineas();
-        std::cout << "=======================================\n";
+        // Intentar colocar la línea
+        if (!gestor->colocarLinea(f1, c1, f2, c2, jugadorActual)) {
+            // Mensaje ya mostrado dentro de colocarLinea
+            std::cout << "Presione Enter para continuar...";
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cin.get();
+            colaTurnos.encolar(jugadorActual); // turno pasa al siguiente
+            continue;
+        }
 
+        // Jugada válida → turno pasa al siguiente
         colaTurnos.encolar(jugadorActual);
+
+        // Validar si ya no quedan líneas libres
+        if (gestor->todasLasLineasColocadas()) {
+            limpiarPantalla();
+            tablero->imprimir();
+            config->mostrarJugadores();
+            std::cout << "\nTodas las líneas han sido colocadas. ¡Fin del juego!\n";
+            break;
+        }
     }
 
     std::cout << "\nJuego terminado.\n";
 }
+
 

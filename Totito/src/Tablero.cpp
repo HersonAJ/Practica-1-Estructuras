@@ -148,44 +148,6 @@ void Tablero::imprimir() const {
     }
 }
 
-
-
-Nodo4<Punto>* Tablero::obtenerNodo(int fila, int columna) const {
-    Nodo4<Punto>* filaPtr = inicio;
-    for (int f = 0; f < fila && filaPtr; ++f) {
-        filaPtr = filaPtr->obtenerAbajo();
-    }
-    if (!filaPtr) return nullptr;
-
-    Nodo4<Punto>* colPtr = filaPtr;
-    for (int c = 0; c < columna && colPtr; ++c) {
-        colPtr = colPtr->obtenerDerecha();
-    }
-    return colPtr;
-}
-
-void Tablero::mostrarVecinos(int fila, int columna) const {
-    Nodo4<Punto>* nodo = obtenerNodo(fila, columna);
-    if (!nodo) {
-        cout << "No existe el nodo en (" << fila << "," << columna << ")\n";
-        return;
-    }
-
-    cout << "Vecinos de (" << fila << "," << columna << "):\n";
-    if (nodo->obtenerArriba()) 
-        cout << "  Arriba -> (" << nodo->obtenerArriba()->obtenerDato().getFila()
-             << "," << nodo->obtenerArriba()->obtenerDato().getColumna() << ")\n";
-    if (nodo->obtenerAbajo()) 
-        cout << "  Abajo -> (" << nodo->obtenerAbajo()->obtenerDato().getFila()
-             << "," << nodo->obtenerAbajo()->obtenerDato().getColumna() << ")\n";
-    if (nodo->obtenerIzquierda()) 
-        cout << "  Izquierda -> (" << nodo->obtenerIzquierda()->obtenerDato().getFila()
-             << "," << nodo->obtenerIzquierda()->obtenerDato().getColumna() << ")\n";
-    if (nodo->obtenerDerecha()) 
-        cout << "  Derecha -> (" << nodo->obtenerDerecha()->obtenerDato().getFila()
-             << "," << nodo->obtenerDerecha()->obtenerDato().getColumna() << ")\n";
-}
-
 bool Tablero::existeLineaColocada(int f1, int c1, int f2, int c2) const {
     Nodo4<Linea*>* actual = lineas.obtenerCabeza();
     while (actual) {
@@ -275,6 +237,106 @@ void Tablero::generarCeldas() {
     inicioCeldas = filaCeldaInicio;
 }
 
+//eliminar si falla, lo de arriba esta bien 
+void Tablero::verificarCeldasPorLinea(Linea* linea, Jugador* jugador) {
+    Nodo4<Celda>* filaCelda = inicioCeldas;
+    while (filaCelda) {
+        Nodo4<Celda>* celdaPtr = filaCelda;
+        while (celdaPtr) {
+            Celda& celda = celdaPtr->obtenerDato();
+            if (celda.contieneLinea(linea) && !celda.estaCompletada()) {
+                if (celda.verificarCompletada()) {
+                    celda.capturar(jugador);
+                }
+            }
+            celdaPtr = celdaPtr->obtenerDerecha();
+        }
+        filaCelda = filaCelda->obtenerAbajo();
+    }
+}
+//metodos auxiliares para pruebas
+/*
+//metodo de debug para ver enlazamiento
+void Tablero::debugPuntosDeCelda(int filaCelda, int colCelda) const {
+    // Navegar hasta la celda solicitada
+    Nodo4<Celda>* filaPtr = inicioCeldas;
+    for (int f = 0; f < filaCelda && filaPtr; ++f) {
+        filaPtr = filaPtr->obtenerAbajo();
+    }
+    if (!filaPtr) {
+        std::cout << "Fila de celda fuera de rango.\n";
+        return;
+    }
+
+    Nodo4<Celda>* celdaPtr = filaPtr;
+    for (int c = 0; c < colCelda && celdaPtr; ++c) {
+        celdaPtr = celdaPtr->obtenerDerecha();
+    }
+    if (!celdaPtr) {
+        std::cout << "Columna de celda fuera de rango.\n";
+        return;
+    }
+
+    const Celda& celda = celdaPtr->obtenerDato();
+
+    std::cout << "=== DEBUG: Celda (" << celda.getFila() << "," << celda.getColumna() << ") ===\n";
+
+    // Esquinas
+    for (int i = 0; i < 4; ++i) {
+        Punto* p = celda.getEsquina(i);
+        if (p) {
+            std::cout << "Esquina[" << i << "]: (" << p->getFila() << "," << p->getColumna() << ")\n";
+        } else {
+            std::cout << "Esquina[" << i << "]: nullptr\n";
+        }
+    }
+
+    // Líneas
+    static const char* nombresLineas[4] = {"Arriba", "Derecha", "Abajo", "Izquierda"};
+    for (int i = 0; i < 4; ++i) {
+        Linea* l = celda.getLinea(i);
+        if (l) {
+            std::cout << "Linea " << nombresLineas[i] << ": (" 
+                      << l->getP1()->getFila() << "," << l->getP1()->getColumna() << ") <-> ("
+                      << l->getP2()->getFila() << "," << l->getP2()->getColumna() << ")\n";
+        } else {
+            std::cout << "Linea " << nombresLineas[i] << ": nullptr\n";
+        }
+    }
+
+    std::cout << "========================================\n";
+}
+*/
+/*
+Nodo4<Punto>* Tablero::obtenerNodo(int fila, int columna) const {
+    Nodo4<Punto>* filaPtr = inicio;
+    for (int f = 0; f < fila && filaPtr; ++f) {
+        filaPtr = filaPtr->obtenerAbajo();
+    }
+    if (!filaPtr) return nullptr;
+
+    Nodo4<Punto>* colPtr = filaPtr;
+    for (int c = 0; c < columna && colPtr; ++c) {
+        colPtr = colPtr->obtenerDerecha();
+    }
+    return colPtr;
+}*/
+
+/*
+Nodo4<Punto>* Tablero::obtenerNodo(int fila, int columna) const {
+    Nodo4<Punto>* filaPtr = inicio;
+    for (int f = 0; f < fila && filaPtr; ++f) {
+        filaPtr = filaPtr->obtenerAbajo();
+    }
+    if (!filaPtr) return nullptr;
+
+    Nodo4<Punto>* colPtr = filaPtr;
+    for (int c = 0; c < columna && colPtr; ++c) {
+        colPtr = colPtr->obtenerDerecha();
+    }
+    return colPtr;
+}*/
+/*
 void Tablero::debugCeldas() const {
     int total = 0;
     Nodo4<Celda>* filaCelda = inicioCeldas;
@@ -295,22 +357,4 @@ void Tablero::debugCeldas() const {
     cout << "Total de celdas: " << total << "\n";
     cout << "==============================\n";
 }
-
-//eliminar si falla, lo de arriba esta bien 
-void Tablero::verificarCeldasPorLinea(Linea* linea, Jugador* jugador) {
-    Nodo4<Celda>* filaCelda = inicioCeldas;
-    while (filaCelda) {
-        Nodo4<Celda>* celdaPtr = filaCelda;
-        while (celdaPtr) {
-            Celda& celda = celdaPtr->obtenerDato();
-            if (celda.contieneLinea(linea) && !celda.estaCompletada()) {
-                if (celda.verificarCompletada()) {
-                    celda.capturar(jugador);
-                }
-            }
-            celdaPtr = celdaPtr->obtenerDerecha();
-        }
-        filaCelda = filaCelda->obtenerAbajo();
-    }
-}
-
+*/

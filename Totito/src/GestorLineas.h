@@ -20,8 +20,9 @@ class GestorLineas {
 
     //metodos de gestion
     Linea* buscarLinea(int fila1, int col1, int fila2, int col2) const;
-    void colocarLinea(int fila1, int col1, int fila2, int col2, Jugador* jugador);
+    bool colocarLinea(int fila1, int col1, int fila2, int col2, Jugador* jugador);
     void mostrarLineas() const;
+    bool todasLasLineasColocadas() const;
 };
 
 #endif
