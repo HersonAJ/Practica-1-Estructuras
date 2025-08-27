@@ -4,6 +4,7 @@
 #include <iostream>
 #include "PowerUps/DobleLinea.h"
 #include"PowerUps/NuevasTierras.h"
+#include"PowerUps/Explosivo.h"
 #include <cstdlib> // para random
 #include <ctime>
 using namespace std;
@@ -123,7 +124,7 @@ void Tablero::imprimir() const {
         cout << f << "   ";
         Nodo4<Punto>* colPunto = filaPunto;
         for (int c = 0; c < columnas; ++c) {
-            cout << "o";
+            cout << colPunto->obtenerDato().simbolo();
             if (c < columnas - 1) {
                 cout << (existeLineaColocada(colPunto->obtenerDato().getFila(), 
                 colPunto->obtenerDato().getColumna(), 
@@ -175,10 +176,10 @@ bool Tablero::existeLineaColocada(int f1, int c1, int f2, int c2) const {
     Nodo4<Linea*>* actual = lineas.obtenerCabeza();
     while (actual) {
         Linea* l = actual->obtenerDato();
-        int lf1 = l->getP1()->getFila();
-        int lc1 = l->getP1()->getColumna();
-        int lf2 = l->getP2()->getFila();
-        int lc2 = l->getP2()->getColumna();
+        int lf1 = (l->getP1() && !l->getP1()->estaDestruido()) ? l->getP1()->getFila() : -1;
+        int lc1 = (l->getP1() && !l->getP1()->estaDestruido()) ? l->getP1()->getColumna() : -1;
+        int lf2 = (l->getP2() && !l->getP2()->estaDestruido()) ? l->getP2()->getFila() : -1;
+        int lc2 = (l->getP2() && !l->getP2()->estaDestruido()) ? l->getP2()->getColumna() : -1;
 
         if (((lf1 == f1 && lc1 == c1 && lf2 == f2 && lc2 == c2) ||
              (lf1 == f2 && lc1 == c2 && lf2 == f1 && lc2 == c1))
@@ -200,7 +201,7 @@ void Tablero::generarCeldas() {
     // Lógica para colocar un PowerUp en una celda aleatoria
     srand(time(nullptr));
     //int totalCeldas = (filas - 1) * (columnas - 1);
-    int celdasConPowerUp = 2; // Cantidad fija de PowerUps a distribuir
+    int celdasConPowerUp = 3; // Cantidad fija de PowerUps a distribuir
 
     Nodo4<Punto>* filaPunto = inicio;
     Nodo4<Celda>* filaCeldaInicio = nullptr;
@@ -257,13 +258,15 @@ void Tablero::generarCeldas() {
             for(int i = 0; i < celdasConPowerUp; i++){
                 if (f == celdasAleatorias[i][0] && c == celdasAleatorias[i][1]){
                     // Elegir aleatoriamente entre DobleLinea (0) y NuevasTierras (1)
-                    int tipoPowerUp = rand() % 2;
+                    int tipoPowerUp = rand() % 3;
                     PowerUp* nuevoPowerUp = nullptr;
 
                     if (tipoPowerUp == 0) {
                         nuevoPowerUp = new DobleLinea();
-                    } else {
+                    } else if (tipoPowerUp == 1) {
                         nuevoPowerUp = new NuevasTierras();
+                    } else {
+                        nuevoPowerUp = new Explosivo();
                     }
 
                     nodoCelda->obtenerDato().asignarPowerUp(nuevoPowerUp);
@@ -354,7 +357,7 @@ void Tablero::expandirAbajo() {
         }
     }
 
-    // 3. Crear nuevas celdas para la última fila de celdas
+    // Crear nuevas celdas para la última fila de celdas
     if (filas > 1) { // Solo si ya existían celdas
         Nodo4<Celda>* ultimaFilaCeldas = inicioCeldas;
         while (ultimaFilaCeldas->obtenerAbajo() != nullptr) {
@@ -412,23 +415,22 @@ void Tablero::expandirAbajo() {
             puntoInferior = puntoInferior->obtenerDerecha();
         }
         
-        // Actualizar punteros de celdas si es necesario
     }
     
-    // 4. Actualizar dimensiones
+    // Actualizar dimensiones
     filas++;
     
     std::cout << "Tablero expandido hacia ABAJO. Nuevo tamaño: " << filas << "x" << columnas << std::endl;
 }
 
 void Tablero::expandirDerecha() {
-    // 1. Encontrar la última columna de puntos
+    // Encontrar la última columna de puntos
     Nodo4<Punto>* ultimaColumna = inicio;
     while (ultimaColumna->obtenerDerecha() != nullptr) {
         ultimaColumna = ultimaColumna->obtenerDerecha();
     }
     
-    // 2. Crear nueva columna de puntos
+    // Crear nueva columna de puntos
     Nodo4<Punto>* currentFila = inicio;
     Nodo4<Punto>* nuevaColumnaStart = nullptr;
     Nodo4<Punto>* prevNewNode = nullptr;
@@ -460,7 +462,7 @@ void Tablero::expandirDerecha() {
         if (currentFila) currentFila = currentFila->obtenerAbajo();
     }
     
-    // 3. Crear nuevas celdas para la última columna de celdas
+    // Crear nuevas celdas para la última columna de celdas
     if (columnas > 1) { // Solo si ya existían celdas
         Nodo4<Punto>* currentFilaForCells = inicio;
         Nodo4<Celda>* currentFilaCeldas = inicioCeldas;
@@ -524,7 +526,7 @@ void Tablero::expandirDerecha() {
         }
     }
     
-    // 4. Actualizar dimensiones
+    // Actualizar dimensiones
     columnas++;
     
     std::cout << "Tablero expandido hacia DERECHA. Nuevo tamaño: " << filas << "x" << columnas << std::endl;
@@ -542,6 +544,120 @@ Linea* Tablero::buscarLinea(Punto* p1, Punto* p2) {
         actual = actual->obtenerDerecha();
     }
     return nullptr; // No encontrada
+}
+
+void Tablero::explotarPunto(int fila, int columna) {
+    // 1. Verificar primero si las coordenadas son válidas
+    if (fila < 0 || fila >= filas || columna < 0 || columna >= columnas) {
+        std::cout << "Error: Coordenadas (" << fila << "," << columna 
+                  << ") fuera de rango. Tablero es " << filas << "x" << columnas << std::endl;
+        return;
+    }
+
+    // 2. Buscar el nodo
+    Nodo4<Punto>* nodoVictima = buscarPunto(fila, columna);
+    if (!nodoVictima) {
+        std::cout << " Error: Punto (" << fila << "," << columna << ") no encontrado" << std::endl;
+        return;
+    }
+
+    // 3. VERIFICACIÓN: Confirmar que el punto no esté ya destruido
+    if (nodoVictima->obtenerDato().estaDestruido()) {
+        std::cout << "El punto (" << fila << "," << columna << ") ya estaba destruido" << std::endl;
+        return;
+    }
+
+    // 4. Marcar el punto como destruido
+    nodoVictima->obtenerDato().destruir();
+    
+    // 5. Buscar celdas afectadas y liberarlas
+    Nodo4<Celda>* filaCelda = inicioCeldas;
+    ListaEnlazada<Jugador*> jugadoresAfectados;
+    Punto* puntoDestruido = &(nodoVictima->obtenerDato());
+    
+    while (filaCelda) {
+        Nodo4<Celda>* celdaActual = filaCelda;
+        while (celdaActual) {
+            Celda& celda = celdaActual->obtenerDato();
+            
+            // Verificar si la celda contiene el punto destruido
+            bool contienePuntoDestruido = false;
+            for (int i = 0; i < 4; i++) {
+                if (celda.getEsquina(i) == puntoDestruido) {
+                    contienePuntoDestruido = true;
+                    break;
+                }
+            }
+            
+            if (contienePuntoDestruido && celda.estaCompletada()) {
+                // Liberar la celda y registrar jugador afectado
+                Jugador* propietario = celda.getPropietario();
+                if (propietario) {
+                    // Evitar duplicados en la lista de jugadores afectados
+                    bool yaListado = false;
+                    Nodo4<Jugador*>* actual = jugadoresAfectados.obtenerCabeza();
+                    while (actual) {
+                        if (actual->obtenerDato() == propietario) {
+                            yaListado = true;
+                            break;
+                        }
+                        actual = actual->obtenerDerecha();
+                    }
+                    if (!yaListado) {
+                        jugadoresAfectados.insertarFinal(propietario);
+                    }
+                }
+                // Quitar propietario pero mantener la celda completada
+                // (según las reglas: "el cuadrado pierde su dueño, pero el punteo no baja")
+                celda.liberar();
+            }
+            
+            celdaActual = celdaActual->obtenerDerecha();
+        }
+        filaCelda = filaCelda->obtenerAbajo();
+    }
+
+    // 6. Mensaje de explosión
+    std::cout << " Punto (" << fila << "," << columna << ") marcado como DESTRUIDO!" << std::endl;
+    
+    // 7. Mostrar jugadores afectados
+    if (jugadoresAfectados.obtenerCabeza()) {
+        std::cout << "Jugadores afectados: ";
+        Nodo4<Jugador*>* jugadorNode = jugadoresAfectados.obtenerCabeza();
+        while (jugadorNode) {
+            std::cout << jugadorNode->obtenerDato()->getNombre() << " ";
+            jugadorNode = jugadorNode->obtenerDerecha();
+        }
+        std::cout << std::endl;
+    } else {
+        std::cout << "Ningún jugador fue afectado por la explosión." << std::endl;
+    }
+}
+Nodo4<Punto>* Tablero::buscarPunto(int fila, int columna) const {
+    if (!inicio) {
+        std::cout << " Error: Tablero no inicializado" << std::endl;
+        return nullptr;
+    }
+    
+    Nodo4<Punto>* actual = inicio;
+    int filaActual = 0;
+    
+    while (actual && filaActual <= fila) {
+        Nodo4<Punto>* colActual = actual;
+        int colActualIndex = 0;
+        
+        while (colActual && colActualIndex <= columna) {
+            if (filaActual == fila && colActualIndex == columna) {
+                return colActual;  // Devuelve el NODO, no el Punto
+            }
+            colActual = colActual->obtenerDerecha();
+            colActualIndex++;
+        }
+        actual = actual->obtenerAbajo();
+        filaActual++;
+    }
+    
+    return nullptr;
 }
 //metodos auxiliares para pruebas
 /*

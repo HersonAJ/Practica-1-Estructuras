@@ -46,6 +46,8 @@ public:
 
     void expandirAbajo();
     void expandirDerecha();
+    void explotarPunto(int fila, int columna);
+    Nodo4<Punto>* buscarPunto(int fila, int columna) const;
 };
 
 #endif

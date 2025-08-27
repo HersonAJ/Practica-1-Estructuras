@@ -42,7 +42,7 @@ void Juego::jugar() {
     bool seUsoPowerUp = false;
 
     while (continuar) {
-        limpiarPantalla(); 
+        //limpiarPantalla(); 
         tablero->imprimir();
         config->mostrarJugadores();
 
@@ -76,7 +76,7 @@ void Juego::jugar() {
             
             delete powerUpUsado;
 
-            limpiarPantalla();
+            //limpiarPantalla();
             tablero->imprimir();
             config->mostrarJugadores();
             
@@ -117,7 +117,7 @@ void Juego::jugar() {
         }
 
         if (gestor->todasLasLineasColocadas()) {
-            limpiarPantalla();
+            //limpiarPantalla();
             tablero->imprimir();
             config->mostrarJugadores();
             cout << "\nTodas las líneas han sido colocadas. ¡Fin del juego!\n";
@@ -154,4 +154,16 @@ void Juego::expandirAbajo() {
 
 void Juego::expandirDerecha() {
     tablero->expandirDerecha();
+}
+
+void Juego::explotarPunto(int fila, int columna) {
+    if (tablero) {
+        tablero->explotarPunto(fila, columna);
+    } else {
+        std::cout << "Error: Tablero no inicializado" << std::endl;
+    }
+}
+
+Tablero* Juego::obtenerTablero() const {
+    return tablero;
 }

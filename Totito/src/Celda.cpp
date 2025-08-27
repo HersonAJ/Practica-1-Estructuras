@@ -58,11 +58,17 @@ bool Celda::contieneLinea(Linea* linea) const {
     return false;
 }
 
-// PowerUp (aún no implementado)
+// PowerUp 
 void Celda::asignarPowerUp(PowerUp* p) { powerUp = p; }
 PowerUp* Celda::getPowerUp() const { return powerUp; }
 
 // Devuelve la inicial del propietario o espacio si está libre
 char Celda::obtenerInicialPropietario() const {
     return propietario ? propietario->getInicial() : ' ';
+}
+
+void Celda::liberar() {
+    if (completada && propietario) {
+        propietario = nullptr;
+    }
 }

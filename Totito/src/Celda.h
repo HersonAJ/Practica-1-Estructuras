@@ -22,7 +22,7 @@ private:
     bool completada;
     Jugador* propietario;
 
-    // PowerUp (aún no implementado)
+    // PowerUp 
     PowerUp* powerUp;
 
 public:
@@ -56,6 +56,8 @@ public:
 
     // Representación
     char obtenerInicialPropietario() const;
+
+    void liberar();
 };
 
 #endif

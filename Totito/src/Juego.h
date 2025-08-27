@@ -25,11 +25,11 @@ public:
     int getFilas() const;
     int getColumnas() const;
     bool estaEnBorde(int fila, int columna) const;
-    void expandirArriba();
     void expandirAbajo();
-    void expandirIzquierda();
     void expandirDerecha();
     bool parseCoordenada(const std::string& coord, int& fila, int& col);
+    Tablero* obtenerTablero() const;
+    void explotarPunto(int fila, int columna);
 };
 
 #endif
