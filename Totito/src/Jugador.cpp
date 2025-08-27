@@ -1,5 +1,6 @@
 #include "Jugador.h"
 #include <cctype>
+#include <iostream>
 
 //metodo para calcular la inicial 
 char Jugador::calcularInicial(const std::string& nombre) {
@@ -18,7 +19,6 @@ Jugador::Jugador(const std::string& nombre, int color)
     : nombre(nombre),
       inicial(calcularInicial(nombre)),
       puntos(0),
-      cantidadPowerUps(0),
       color(color) {
 }
 
@@ -28,7 +28,6 @@ const std::string& Jugador::getNombre() const { return nombre;}
 char Jugador::getInicial() const { return inicial; }
 int Jugador::getPuntos() const { return puntos; }
 int Jugador::getColor() const { return color; }
-int Jugador:: getCantidadPowerUps() const { return cantidadPowerUps; }
 
 void Jugador::sumarPunto() {
     puntos++;
@@ -39,32 +38,26 @@ void Jugador::restarPunto() {
         puntos--;
     }
 }
-/*
-//manejo de puntos
-bool Jugador::agregarPowerUp(TipoPowerUp powerUp) {
-    if (cantidadPowerUps >= MAX_POWERUPS) {
-        return false;
+
+//manejo de powerups
+void Jugador::agregarPowerUp(PowerUp* powerUp) {
+    if (powerUp != nullptr) {
+        pilaPowerUps.apilar(powerUp);
     }
-    powerUps[cantidadPowerUps++] = powerUp;
-    return true;
 }
 
-
-TipoPowerUp Jugador::usarPowerUp() {
-    if(cantidadPowerUps <= 0) return TipoPowerUp::NINGUNO;
-    return powerUps[--cantidadPowerUps];
+PowerUp* Jugador::usarPowerUp() {
+    return pilaPowerUps.desapilar();
 }
-
 bool Jugador::tienePowerUps() const {
-    return cantidadPowerUps > 0;
+    return !pilaPowerUps.estaVacia();
 }
 
-TipoPowerUp Jugador::verSiguientePowerUp() const {
-    if(cantidadPowerUps <= 0) return TipoPowerUp::NINGUNO;
-    return powerUps[cantidadPowerUps - 1];
+PowerUp* Jugador::verSiguientePowerUp() const {
+    return pilaPowerUps.verTope();
 }
-*/
-//color del jugador
+
+// Color del jugador
 void Jugador::setColor(int nuevoColor) {
     color = nuevoColor;
 }

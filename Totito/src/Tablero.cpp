@@ -2,6 +2,9 @@
 #include "ListaEnlazada.h"
 #include "Linea.h"
 #include <iostream>
+#include "PowerUps/DobleLinea.h"
+#include <cstdlib> // para random
+#include <ctime>
 using namespace std;
 
 Tablero::Tablero(int filas, int columnas)
@@ -105,46 +108,59 @@ void Tablero::generarLineas() {
 }
 
 void Tablero::imprimir() const {
-    // Encabezado de columnas
     cout << "    ";
-    for (int c = 0; c < columnas; ++c) {
+    for (int c = 0; c < columnas -1; ++c) {
         cout << char('A' + c) << "   ";
     }
     cout << "\n\n";
 
     Nodo4<Celda>* filaCelda = inicioCeldas;
+    Nodo4<Punto>* filaPunto = inicio;
 
     for (int f = 0; f < filas; ++f) {
         // Fila de puntos + horizontales
         cout << f << "   ";
+        Nodo4<Punto>* colPunto = filaPunto;
         for (int c = 0; c < columnas; ++c) {
             cout << "o";
             if (c < columnas - 1) {
-                cout << (existeLineaColocada(f, c, f, c + 1) ? "---" : "   ");
+                cout << (existeLineaColocada(colPunto->obtenerDato().getFila(), colPunto->obtenerDato().getColumna(), colPunto->obtenerDerecha()->obtenerDato().getFila(), colPunto->obtenerDerecha()->obtenerDato().getColumna()) ? "---" : "   ");
             }
+            colPunto = colPunto->obtenerDerecha();
         }
         cout << "\n";
 
-        // Fila de verticales + iniciales de propietario (solo si no es la última fila de puntos)
+        // Fila de verticales + iniciales de propietario
         if (f < filas - 1) {
             cout << "    ";
             Nodo4<Celda>* celdaPtr = filaCelda;
-            for (int c = 0; c < columnas; ++c) {
-                // Línea vertical izquierda de la celda
-                cout << (existeLineaColocada(f, c, f + 1, c) ? "|" : " ");
+            Nodo4<Punto>* colPuntoVert = filaPunto;
 
-                // Espacio central: inicial del propietario si existe
+            for (int c = 0; c < columnas; ++c) {
+                // Línea vertical
+                cout << (existeLineaColocada(colPuntoVert->obtenerDato().getFila(), colPuntoVert->obtenerDato().getColumna(), colPuntoVert->obtenerAbajo()->obtenerDato().getFila(), colPuntoVert->obtenerAbajo()->obtenerDato().getColumna()) ? "|" : " ");
+
+                // Espacio central de la celda
                 if (c < columnas - 1) {
-                    char inicial = celdaPtr ? celdaPtr->obtenerDato().obtenerInicialPropietario() : ' ';
-                    cout << " " << inicial << " ";
+                    if (celdaPtr) {
+                        if (celdaPtr->obtenerDato().estaCompletada()) {
+                             cout << " " << celdaPtr->obtenerDato().obtenerInicialPropietario() << " ";
+                        } else if (celdaPtr->obtenerDato().getPowerUp() != nullptr) {
+                            cout << " " << celdaPtr->obtenerDato().getPowerUp()->getSimbolo() << " ";
+                        } else {
+                            cout << "   ";
+                        }
+                    } else {
+                        cout << "   ";
+                    }
                     celdaPtr = celdaPtr ? celdaPtr->obtenerDerecha() : nullptr;
                 }
+                colPuntoVert = colPuntoVert->obtenerDerecha();
             }
             cout << "\n\n";
-
-            // Avanzar a la siguiente fila de celdas
-            if (filaCelda) filaCelda = filaCelda->obtenerAbajo();
         }
+        filaPunto = filaPunto->obtenerAbajo();
+        if (filaCelda) filaCelda = filaCelda->obtenerAbajo();
     }
 }
 
@@ -168,7 +184,7 @@ bool Tablero::existeLineaColocada(int f1, int c1, int f2, int c2) const {
 }
 
 //hasta aqui esta funcionando bien 
-void Tablero::generarCeldas() {
+/*void Tablero::generarCeldas() {
     if (filas < 2 || columnas < 2) {
         inicioCeldas = nullptr;
         return;
@@ -178,18 +194,22 @@ void Tablero::generarCeldas() {
     Nodo4<Celda>* filaCeldaInicio = nullptr;
     Nodo4<Celda>* filaCeldaAnterior = nullptr;
 
+    // Lógica para colocar un PowerUp en una celda aleatoria
+    srand(time(nullptr));
+    int filaAleatoria = rand() % (filas - 1);
+    int colAleatoria = rand() % (columnas - 1);
+    bool powerUpColocado = false;
+
     for (int f = 0; f < filas - 1; ++f) {
         Nodo4<Punto>* colPunto = filaPunto;
         Nodo4<Celda>* nodoCeldaAnterior = nullptr;
 
         for (int c = 0; c < columnas - 1; ++c) {
-            // Puntos de la celda
             Punto* supIzq = &(colPunto->obtenerDato());
             Punto* supDer = &(colPunto->obtenerDerecha()->obtenerDato());
             Punto* infIzq = &(colPunto->obtenerAbajo()->obtenerDato());
             Punto* infDer = &(colPunto->obtenerAbajo()->obtenerDerecha()->obtenerDato());
 
-            // Líneas de la celda (buscadas en la lista global)
             Linea* arriba = nullptr;
             Linea* derecha = nullptr;
             Linea* abajo = nullptr;
@@ -205,11 +225,17 @@ void Tablero::generarCeldas() {
                 actual = actual->obtenerDerecha();
             }
 
-            // Crear celda
             Celda nuevaCelda(f, c, supIzq, supDer, infIzq, infDer, arriba, derecha, abajo, izquierda);
             Nodo4<Celda>* nodoCelda = new Nodo4<Celda>(nuevaCelda);
 
-            // Enlazar horizontalmente
+            // Se verifica si esta celda es la que debe contener el PowerUp
+            if (!powerUpColocado && f == filaAleatoria && c == colAleatoria) {
+                PowerUp* dl = new DobleLinea();
+                nodoCelda->obtenerDato().asignarPowerUp(dl);
+                powerUpColocado = true;
+                std::cout << "PowerUp Doble Línea colocado en la celda: [" << f << "][" << c << "]" << std::endl;
+            }
+
             if (nodoCeldaAnterior) {
                 nodoCeldaAnterior->establecerDerecha(nodoCelda);
                 nodoCelda->establecerIzquierda(nodoCeldaAnterior);
@@ -217,7 +243,84 @@ void Tablero::generarCeldas() {
                 filaCeldaInicio = nodoCelda;
             }
 
-            // Enlazar verticalmente
+            if (filaCeldaAnterior) {
+                Nodo4<Celda>* nodoArriba = filaCeldaAnterior;
+                for (int k = 0; k < c; ++k) nodoArriba = nodoArriba->obtenerDerecha();
+                nodoArriba->establecerAbajo(nodoCelda);
+                nodoCelda->establecerArriba(nodoArriba);
+            }
+
+            nodoCeldaAnterior = nodoCelda;
+            colPunto = colPunto->obtenerDerecha();
+        }
+
+        filaCeldaAnterior = filaCeldaInicio;
+        for (int k = 0; k < f; ++k) filaCeldaAnterior = filaCeldaAnterior->obtenerAbajo();
+        filaPunto = filaPunto->obtenerAbajo();
+    }
+
+    inicioCeldas = filaCeldaInicio;
+}*/
+
+void Tablero::generarCeldas() {
+    if (filas < 2 || columnas < 2) {
+        inicioCeldas = nullptr;
+        return;
+    }
+
+    Nodo4<Punto>* filaPunto = inicio;
+    Nodo4<Celda>* filaCeldaInicio = nullptr;
+    Nodo4<Celda>* filaCeldaAnterior = nullptr;
+
+    // Lógica para colocar un PowerUp en una celda aleatoria
+    srand(time(nullptr));
+    int filaAleatoria = rand() % (filas - 1);
+    int colAleatoria = rand() % (columnas - 1);
+    bool powerUpColocado = false;
+
+    for (int f = 0; f < filas - 1; ++f) {
+        Nodo4<Punto>* colPunto = filaPunto;
+        Nodo4<Celda>* nodoCeldaAnterior = nullptr;
+
+        for (int c = 0; c < columnas - 1; ++c) {
+            Punto* supIzq = &(colPunto->obtenerDato());
+            Punto* supDer = &(colPunto->obtenerDerecha()->obtenerDato());
+            Punto* infIzq = &(colPunto->obtenerAbajo()->obtenerDato());
+            Punto* infDer = &(colPunto->obtenerAbajo()->obtenerDerecha()->obtenerDato());
+
+            Linea* arriba = nullptr;
+            Linea* derecha = nullptr;
+            Linea* abajo = nullptr;
+            Linea* izquierda = nullptr;
+
+            Nodo4<Linea*>* actual = lineas.obtenerCabeza();
+            while (actual) {
+                Linea* l = actual->obtenerDato();
+                if (l->conecta(supIzq, supDer)) arriba = l;
+                else if (l->conecta(supDer, infDer)) derecha = l;
+                else if (l->conecta(infIzq, infDer)) abajo = l;
+                else if (l->conecta(supIzq, infIzq)) izquierda = l;
+                actual = actual->obtenerDerecha();
+            }
+
+            Celda nuevaCelda(f, c, supIzq, supDer, infIzq, infDer, arriba, derecha, abajo, izquierda);
+            Nodo4<Celda>* nodoCelda = new Nodo4<Celda>(nuevaCelda);
+
+            // Se verifica si esta celda es la que debe contener el PowerUp
+            if (!powerUpColocado && f == filaAleatoria && c == colAleatoria) {
+                PowerUp* dl = new DobleLinea();
+                nodoCelda->obtenerDato().asignarPowerUp(dl);
+                powerUpColocado = true;
+                std::cout << "PowerUp Doble Línea colocado en la celda: [" << f << "][" << c << "]" << std::endl;
+            }
+
+            if (nodoCeldaAnterior) {
+                nodoCeldaAnterior->establecerDerecha(nodoCelda);
+                nodoCelda->establecerIzquierda(nodoCeldaAnterior);
+            } else if (!filaCeldaInicio) {
+                filaCeldaInicio = nodoCelda;
+            }
+
             if (filaCeldaAnterior) {
                 Nodo4<Celda>* nodoArriba = filaCeldaAnterior;
                 for (int k = 0; k < c; ++k) nodoArriba = nodoArriba->obtenerDerecha();
@@ -237,7 +340,6 @@ void Tablero::generarCeldas() {
     inicioCeldas = filaCeldaInicio;
 }
 
-//eliminar si falla, lo de arriba esta bien 
 void Tablero::verificarCeldasPorLinea(Linea* linea, Jugador* jugador) {
     Nodo4<Celda>* filaCelda = inicioCeldas;
     while (filaCelda) {
@@ -247,6 +349,12 @@ void Tablero::verificarCeldasPorLinea(Linea* linea, Jugador* jugador) {
             if (celda.contieneLinea(linea) && !celda.estaCompletada()) {
                 if (celda.verificarCompletada()) {
                     celda.capturar(jugador);
+                    // Lógica para obtener el PowerUp si la celda lo tenía
+                    PowerUp* p = celda.getPowerUp();
+                    if (p != nullptr) {
+                        jugador->agregarPowerUp(p);
+                        celda.asignarPowerUp(nullptr);
+                    }
                 }
             }
             celdaPtr = celdaPtr->obtenerDerecha();

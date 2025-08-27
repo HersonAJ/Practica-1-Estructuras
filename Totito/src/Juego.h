@@ -11,7 +11,7 @@ private:
     Configuracion* config;
     Tablero* tablero;
     GestorLineas* gestor;
-    Cola<Jugador*> colaTurnos; // cola de jugadores
+    Cola<Jugador> colaTurnos; // cola de jugadores
 
 public:
     Juego(Configuracion* config);

@@ -9,11 +9,13 @@ private:
     Nodo<T>* anterior;
 
     // Constructor privado, solo Lista<T> puede crear nodos
-    Nodo(T* d) : dato(d), siguiente(nullptr), anterior(nullptr) {}
+    //Nodo(T* d) : dato(d), siguiente(nullptr), anterior(nullptr) {}
 
     template <typename> friend class Lista;
 
 public:
+
+Nodo(T* d) : dato(d), siguiente(nullptr), anterior(nullptr) {}
     // Getters
     T* getDato() const { return dato; }
     Nodo<T>* getSiguiente() const { return siguiente; }

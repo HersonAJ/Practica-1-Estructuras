@@ -2,6 +2,8 @@
 #define JUGADOR_H
 
 #include "Linea.h"
+#include "Pila.h"
+#include "PowerUps/PowerUp.h"
 #include <string>
 
 #define MAX_POWERUPS 10
@@ -12,8 +14,7 @@ private:
     std::string nombre;
     char inicial;
     int puntos;
-    //TipoPowerUp powerUps[MAX_POWERUPS];
-    int cantidadPowerUps;
+    Pila<PowerUp> pilaPowerUps; //pila personal del jugador
     int color;
 
     // Método privado para calcular inicial 
@@ -27,17 +28,16 @@ public:
     char getInicial() const;
     int getPuntos() const;
     int getColor() const;
-    int getCantidadPowerUps() const;
     
     // Manejo de puntos
     void sumarPunto();
     void restarPunto();
     
     // Manejo de power-ups
-    //bool agregarPowerUp(TipoPowerUp powerUp);
-    //TipoPowerUp usarPowerUp();
+    void agregarPowerUp(PowerUp* powerUp);
+    PowerUp* usarPowerUp();
     bool tienePowerUps() const;
-    //TipoPowerUp verSiguientePowerUp() const;
+    PowerUp* verSiguientePowerUp() const;
     
     // Método para cambiar color
     void setColor(int nuevoColor);
