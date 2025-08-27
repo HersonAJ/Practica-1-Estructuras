@@ -17,6 +17,8 @@ public:
         std::cout << "¡Poder Doble Línea activado! Puedes colocar dos líneas consecutivas." << std::endl;
 
     }
+
+    void aplicarEfecto(Juego* juego, Jugador* jugador) override;
 };
 
 #endif

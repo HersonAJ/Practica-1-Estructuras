@@ -19,6 +19,7 @@ public:
 
     void inicializar();
     void jugar(); // bucle principal
+    void devolverTurno(Jugador* jugador);
 };
 
 #endif

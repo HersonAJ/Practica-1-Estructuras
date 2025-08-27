@@ -60,6 +60,21 @@ public:
     int size() const {
         return cantidad;
     }
+
+    void encolarFrente(T* valor);
 };
+//metodo para el poder de doble linea
+template <typename T>
+void Cola<T>::encolarFrente(T* valor) {
+    Nodo<T>* nuevoNodo = new Nodo<T>(valor);
+    if (esVacio()) {
+        frente = fin = nuevoNodo;
+    } else {
+        nuevoNodo->setSiguiente(frente);
+        frente->setAnterior(nuevoNodo);
+        frente = nuevoNodo;
+    }
+    cantidad++;
+}
 
 #endif // COLA_H

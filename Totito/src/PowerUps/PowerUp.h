@@ -3,6 +3,8 @@
 
 #include <string>
 
+class Jugador;
+
 class PowerUp {
     protected:
     std::string simbolo;
@@ -25,6 +27,8 @@ class PowerUp {
     }
 
     virtual void activar() = 0;
+
+    virtual void aplicarEfecto(class Juego* juego, Jugador* jugador) = 0;
 };
 
 #endif

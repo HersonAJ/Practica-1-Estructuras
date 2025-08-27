@@ -12,7 +12,7 @@ Juego::~Juego() {
     delete gestor;
 }
 
-// función auxiliar: convierte "A0" a fila y columna
+// Función auxiliar: convierte "A0" a fila y columna
 static bool parseCoordenada(const string& coord, int& fila, int& col) {
     if (coord.size() < 2) return false;
     col = coord[0] - 'A';  // letra → columna
@@ -35,8 +35,14 @@ void Juego::inicializar() {
     }
 }
 
+// NUEVO MÉTODO PARA DEVOLVER EL TURNO AL JUGADOR
+void Juego::devolverTurno(Jugador* jugador) {
+    colaTurnos.encolarFrente(jugador);
+}
+
 void Juego::jugar() {
     bool continuar = true;
+    bool seUsoPowerUp = false;
 
     while (continuar) {
         limpiarPantalla(); 
@@ -50,13 +56,39 @@ void Juego::jugar() {
             break;
         }
 
-        // Sacamos al jugador actual
+                              
         Jugador* jugadorActual = colaTurnos.desencolar();
 
         std::cout << "\nTurno de: " << jugadorActual->getNombre()
                   << " (" << jugadorActual->getInicial() << ")\n";
 
         jugadorActual->mostrarPowerUps();
+
+        // Lógica para el manejo de PowerUps dentro del turno
+        std::string respuesta;
+        if (!jugadorActual->tienePowerUps()) {
+            respuesta = "no";
+        } else {
+            std::cout << "¿Desea usar un PowerUp? (si/no): ";
+            std::cin >> respuesta;
+        }
+
+        seUsoPowerUp = false;
+        if (respuesta == "si") {
+            seUsoPowerUp = true;
+            PowerUp* powerUpUsado = jugadorActual->usarPowerUp();
+
+            std::cout << "\n¡Has usado el PowerUp " << powerUpUsado->getSimbolo() << "!\n";
+            
+            // Llamada polimórfica: el PowerUp se aplica a sí mismo.
+            powerUpUsado->aplicarEfecto(this, jugadorActual);
+            
+            delete powerUpUsado;
+            
+            std::cout << "Presione Enter para continuar...";
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cin.get();
+        }
 
         std::string entrada1, entrada2;
         std::cout << "Ingrese primera coordenada (ej: A0 o 'salir'): ";
@@ -87,8 +119,10 @@ void Juego::jugar() {
             continue;
         }
 
-        // Jugada válida → turno pasa al siguiente
-        colaTurnos.encolar(jugadorActual);
+        // Se encola al jugador si no se usó un PowerUp que ya lo encoló.
+        if (!seUsoPowerUp) {
+            colaTurnos.encolar(jugadorActual);
+        }
 
         // Validar si ya no quedan líneas libres
         if (gestor->todasLasLineasColocadas()) {
@@ -100,18 +134,17 @@ void Juego::jugar() {
         }
     }
 
-        std::cout << "\nJuego terminado.\n";
+    std::cout << "\nJuego terminado.\n";
 
-        // Evaluar condiciones de victoria
-        Jugador* ganador = evaluarGanador(tablero, *config->getListaJugadores());
+    // Evaluar condiciones de victoria
+    Jugador* ganador = evaluarGanador(tablero, *config->getListaJugadores());
 
-        std::cout << "\nResultado final:\n";
-        if (ganador != nullptr) {
-            std::cout << "\nGanador: " << ganador->getNombre()
-                    << " (" << ganador->getInicial() << ") con "
-                    << ganador->getPuntos() << " puntos.\n";
-        } else {
-            std::cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
-        }
-
+    std::cout << "\nResultado final:\n";
+    if (ganador != nullptr) {
+        std::cout << "\nGanador: " << ganador->getNombre()
+                  << " (" << ganador->getInicial() << ") con "
+                  << ganador->getPuntos() << " puntos.\n";
+    } else {
+        std::cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
+    }
 }
