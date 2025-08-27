@@ -3,6 +3,7 @@
 #include "Linea.h"
 #include <iostream>
 #include "PowerUps/DobleLinea.h"
+#include"PowerUps/NuevasTierras.h"
 #include <cstdlib> // para random
 #include <ctime>
 using namespace std;
@@ -196,16 +197,34 @@ void Tablero::generarCeldas() {
         return;
     }
 
+    // Lógica para colocar un PowerUp en una celda aleatoria
+    srand(time(nullptr));
+    //int totalCeldas = (filas - 1) * (columnas - 1);
+    int celdasConPowerUp = 2; // Cantidad fija de PowerUps a distribuir
+
     Nodo4<Punto>* filaPunto = inicio;
     Nodo4<Celda>* filaCeldaInicio = nullptr;
     Nodo4<Celda>* filaCeldaAnterior = nullptr;
-
-    // Lógica para colocar un PowerUp en una celda aleatoria
-    srand(time(nullptr));
-    int filaAleatoria = rand() % (filas - 1);
-    int colAleatoria = rand() % (columnas - 1);
-    bool powerUpColocado = false;
-
+    
+    // Lista para guardar las coordenadas aleatorias de los PowerUps
+    int celdasAleatorias[celdasConPowerUp][2]; 
+    bool existeCoordenada;
+    for (int i = 0; i < celdasConPowerUp; i++) {
+        do {
+            existeCoordenada = false;
+            celdasAleatorias[i][0] = rand() % (filas - 1);
+            celdasAleatorias[i][1] = rand() % (columnas - 1);
+            
+            // Verificar si la coordenada ya existe
+            for(int j = 0; j < i; j++){
+                if (celdasAleatorias[i][0] == celdasAleatorias[j][0] && celdasAleatorias[i][1] == celdasAleatorias[j][1]){
+                    existeCoordenada = true;
+                    break;
+                }
+            }
+        } while(existeCoordenada);
+    }
+    
     for (int f = 0; f < filas - 1; ++f) {
         Nodo4<Punto>* colPunto = filaPunto;
         Nodo4<Celda>* nodoCeldaAnterior = nullptr;
@@ -233,13 +252,25 @@ void Tablero::generarCeldas() {
 
             Celda nuevaCelda(f, c, supIzq, supDer, infIzq, infDer, arriba, derecha, abajo, izquierda);
             Nodo4<Celda>* nodoCelda = new Nodo4<Celda>(nuevaCelda);
+            
+            // Lógica para asignar PowerUps a las celdas aleatorias
+            for(int i = 0; i < celdasConPowerUp; i++){
+                if (f == celdasAleatorias[i][0] && c == celdasAleatorias[i][1]){
+                    // Elegir aleatoriamente entre DobleLinea (0) y NuevasTierras (1)
+                    int tipoPowerUp = rand() % 2;
+                    PowerUp* nuevoPowerUp = nullptr;
 
-            // Se verifica si esta celda es la que debe contener el PowerUp
-            if (!powerUpColocado && f == filaAleatoria && c == colAleatoria) {
-                PowerUp* dl = new DobleLinea();
-                nodoCelda->obtenerDato().asignarPowerUp(dl);
-                powerUpColocado = true;
-                std::cout << "PowerUp Doble Línea colocado en la celda: [" << f << "][" << c << "]" << std::endl;
+                    if (tipoPowerUp == 0) {
+                        nuevoPowerUp = new DobleLinea();
+                    } else {
+                        nuevoPowerUp = new NuevasTierras();
+                    }
+
+                    nodoCelda->obtenerDato().asignarPowerUp(nuevoPowerUp);
+                    std::cout << "PowerUp " << nuevoPowerUp->getSimbolo() 
+                              << " colocado en la celda: [" << f << "][" << c << "]" << std::endl;
+                    break; 
+                }
             }
 
             if (nodoCeldaAnterior) {
@@ -289,6 +320,228 @@ void Tablero::verificarCeldasPorLinea(Linea* linea, Jugador* jugador) {
         }
         filaCelda = filaCelda->obtenerAbajo();
     }
+}
+
+void Tablero::expandirAbajo() {
+    // 1. Encontrar la última fila de puntos
+    Nodo4<Punto>* ultimaFila = inicio;
+    while (ultimaFila->obtenerAbajo() != nullptr) {
+        ultimaFila = ultimaFila->obtenerAbajo();
+    }
+
+    // 2. Crear nueva fila de puntos
+    Nodo4<Punto>* nuevaFila = nullptr;
+    Nodo4<Punto>* currentNew = nullptr;
+    Nodo4<Punto>* currentOld = ultimaFila;
+    
+    for (int c = 0; c < columnas; ++c) {
+        Nodo4<Punto>* nuevoNodo = new Nodo4<Punto>(Punto(filas, c));
+        
+        if (nuevaFila == nullptr) {
+            nuevaFila = nuevoNodo;
+            currentNew = nuevaFila;
+        } else {
+            currentNew->establecerDerecha(nuevoNodo);
+            nuevoNodo->establecerIzquierda(currentNew);
+            currentNew = nuevoNodo;
+        }
+        
+        // Enlazar verticalmente con la fila anterior
+        if (currentOld) {
+            currentOld->establecerAbajo(nuevoNodo);
+            nuevoNodo->establecerArriba(currentOld);
+            currentOld = currentOld->obtenerDerecha();
+        }
+    }
+
+    // 3. Crear nuevas celdas para la última fila de celdas
+    if (filas > 1) { // Solo si ya existían celdas
+        Nodo4<Celda>* ultimaFilaCeldas = inicioCeldas;
+        while (ultimaFilaCeldas->obtenerAbajo() != nullptr) {
+            ultimaFilaCeldas = ultimaFilaCeldas->obtenerAbajo();
+        }
+        
+        Nodo4<Punto>* puntoSuperior = ultimaFila;
+        Nodo4<Punto>* puntoInferior = nuevaFila;
+        Nodo4<Celda>* nuevaFilaCeldas = nullptr;
+        Nodo4<Celda>* currentCeldaNew = nullptr;
+        
+        for (int c = 0; c < columnas - 1; ++c) {
+            if (!puntoSuperior || !puntoInferior) break;
+            
+            Punto* supIzq = &(puntoSuperior->obtenerDato());
+            Punto* supDer = &(puntoSuperior->obtenerDerecha()->obtenerDato());
+            Punto* infIzq = &(puntoInferior->obtenerDato());
+            Punto* infDer = &(puntoInferior->obtenerDerecha()->obtenerDato());
+            
+            // Buscar o crear líneas
+            Linea* arriba = buscarLinea(supIzq, supDer);
+            Linea* abajo = new Linea(infIzq, infDer, Orientacion::HORIZONTAL);
+            Linea* izquierda = buscarLinea(supIzq, infIzq);
+            Linea* derecha = new Linea(supDer, infDer, Orientacion::VERTICAL);
+            
+            lineas.insertarFinal(abajo);
+            lineas.insertarFinal(derecha);
+            
+            Celda nuevaCelda(filas - 1, c, supIzq, supDer, infIzq, infDer, 
+                            arriba, derecha, abajo, izquierda);
+            Nodo4<Celda>* nuevaCeldaNodo = new Nodo4<Celda>(nuevaCelda);
+            
+            if (nuevaFilaCeldas == nullptr) {
+                nuevaFilaCeldas = nuevaCeldaNodo;
+                currentCeldaNew = nuevaFilaCeldas;
+            } else {
+                currentCeldaNew->establecerDerecha(nuevaCeldaNodo);
+                nuevaCeldaNodo->establecerIzquierda(currentCeldaNew);
+                currentCeldaNew = nuevaCeldaNodo;
+            }
+            
+            // Enlazar verticalmente con la fila de celdas superior
+            if (ultimaFilaCeldas) {
+                Nodo4<Celda>* celdaArriba = ultimaFilaCeldas;
+                for (int i = 0; i < c && celdaArriba; i++) {
+                    celdaArriba = celdaArriba->obtenerDerecha();
+                }
+                if (celdaArriba) {
+                    celdaArriba->establecerAbajo(nuevaCeldaNodo);
+                    nuevaCeldaNodo->establecerArriba(celdaArriba);
+                }
+            }
+            
+            puntoSuperior = puntoSuperior->obtenerDerecha();
+            puntoInferior = puntoInferior->obtenerDerecha();
+        }
+        
+        // Actualizar punteros de celdas si es necesario
+    }
+    
+    // 4. Actualizar dimensiones
+    filas++;
+    
+    std::cout << "Tablero expandido hacia ABAJO. Nuevo tamaño: " << filas << "x" << columnas << std::endl;
+}
+
+void Tablero::expandirDerecha() {
+    // 1. Encontrar la última columna de puntos
+    Nodo4<Punto>* ultimaColumna = inicio;
+    while (ultimaColumna->obtenerDerecha() != nullptr) {
+        ultimaColumna = ultimaColumna->obtenerDerecha();
+    }
+    
+    // 2. Crear nueva columna de puntos
+    Nodo4<Punto>* currentFila = inicio;
+    Nodo4<Punto>* nuevaColumnaStart = nullptr;
+    Nodo4<Punto>* prevNewNode = nullptr;
+    
+    for (int f = 0; f < filas; ++f) {
+        Nodo4<Punto>* nuevoNodo = new Nodo4<Punto>(Punto(f, columnas));
+        
+        if (nuevaColumnaStart == nullptr) {
+            nuevaColumnaStart = nuevoNodo;
+        }
+        
+        // Enlazar horizontalmente con la columna anterior
+        if (currentFila) {
+            Nodo4<Punto>* lastInRow = currentFila;
+            while (lastInRow->obtenerDerecha() != nullptr) {
+                lastInRow = lastInRow->obtenerDerecha();
+            }
+            lastInRow->establecerDerecha(nuevoNodo);
+            nuevoNodo->establecerIzquierda(lastInRow);
+        }
+        
+        // Enlazar verticalmente con nodo de la misma columna
+        if (prevNewNode) {
+            prevNewNode->establecerAbajo(nuevoNodo);
+            nuevoNodo->establecerArriba(prevNewNode);
+        }
+        
+        prevNewNode = nuevoNodo;
+        if (currentFila) currentFila = currentFila->obtenerAbajo();
+    }
+    
+    // 3. Crear nuevas celdas para la última columna de celdas
+    if (columnas > 1) { // Solo si ya existían celdas
+        Nodo4<Punto>* currentFilaForCells = inicio;
+        Nodo4<Celda>* currentFilaCeldas = inicioCeldas;
+        
+        for (int f = 0; f < filas - 1; ++f) {
+            if (!currentFilaForCells || !currentFilaCeldas) break;
+            
+            // Encontrar el último nodo de celda en esta fila
+            Nodo4<Celda>* lastCeldaInRow = currentFilaCeldas;
+            while (lastCeldaInRow->obtenerDerecha() != nullptr) {
+                lastCeldaInRow = lastCeldaInRow->obtenerDerecha();
+            }
+            
+            // Crear nueva celda
+            Nodo4<Punto>* puntoSupIzq = currentFilaForCells;
+            for (int i = 0; i < columnas - 1 && puntoSupIzq; i++) {
+                puntoSupIzq = puntoSupIzq->obtenerDerecha();
+            }
+            
+            if (puntoSupIzq && puntoSupIzq->obtenerDerecha() && 
+                puntoSupIzq->obtenerAbajo() && puntoSupIzq->obtenerDerecha()->obtenerAbajo()) {
+                
+                Punto* supIzq = &(puntoSupIzq->obtenerDato());
+                Punto* supDer = &(puntoSupIzq->obtenerDerecha()->obtenerDato());
+                Punto* infIzq = &(puntoSupIzq->obtenerAbajo()->obtenerDato());
+                Punto* infDer = &(puntoSupIzq->obtenerDerecha()->obtenerAbajo()->obtenerDato());
+                
+                // Buscar o crear líneas
+                Linea* arriba = buscarLinea(supIzq, supDer);
+                Linea* abajo = buscarLinea(infIzq, infDer);
+                Linea* izquierda = buscarLinea(supIzq, infIzq);
+                Linea* derecha = new Linea(supDer, infDer, Orientacion::VERTICAL);
+                
+                lineas.insertarFinal(derecha);
+                
+                Celda nuevaCelda(f, columnas - 1, supIzq, supDer, infIzq, infDer, 
+                                arriba, derecha, abajo, izquierda);
+                Nodo4<Celda>* nuevaCeldaNodo = new Nodo4<Celda>(nuevaCelda);
+                
+                // Enlazar horizontalmente
+                if (lastCeldaInRow) {
+                    lastCeldaInRow->establecerDerecha(nuevaCeldaNodo);
+                    nuevaCeldaNodo->establecerIzquierda(lastCeldaInRow);
+                }
+                
+                // Enlazar verticalmente si hay celda abajo
+                if (f > 0 && currentFilaCeldas->obtenerAbajo()) {
+                    Nodo4<Celda>* celdaAbajo = currentFilaCeldas->obtenerAbajo();
+                    for (int i = 0; i < columnas - 1 && celdaAbajo; i++) {
+                        celdaAbajo = celdaAbajo->obtenerDerecha();
+                    }
+                    if (celdaAbajo) {
+                        celdaAbajo->establecerArriba(nuevaCeldaNodo);
+                        nuevaCeldaNodo->establecerAbajo(celdaAbajo);
+                    }
+                }
+            }
+            
+            currentFilaForCells = currentFilaForCells->obtenerAbajo();
+            currentFilaCeldas = currentFilaCeldas->obtenerAbajo();
+        }
+    }
+    
+    // 4. Actualizar dimensiones
+    columnas++;
+    
+    std::cout << "Tablero expandido hacia DERECHA. Nuevo tamaño: " << filas << "x" << columnas << std::endl;
+}
+
+// Método auxiliar necesario
+Linea* Tablero::buscarLinea(Punto* p1, Punto* p2) {
+    Nodo4<Linea*>* actual = lineas.obtenerCabeza();
+    while (actual) {
+        Linea* l = actual->obtenerDato();
+        if ((l->getP1() == p1 && l->getP2() == p2) || 
+            (l->getP1() == p2 && l->getP2() == p1)) {
+            return l;
+        }
+        actual = actual->obtenerDerecha();
+    }
+    return nullptr; // No encontrada
 }
 //metodos auxiliares para pruebas
 /*

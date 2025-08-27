@@ -22,11 +22,14 @@ private:
 
     //metodo para verificar si una lista ya esta colocada 
     bool existeLineaColocada(int f1, int c1, int f2, int c2) const;
+    Linea* buscarLinea(Punto* p1, Punto* p2);
 
 public:
     Tablero(int filas, int columnas);
     ~Tablero();
 
+    int getFilas() const { return filas; }
+    int getColumnas() const { return columnas; }
     void imprimir() const;
     //void mostrarVecinos(int fila, int columna) const;
     void generarLineas(); // genera todas las lineas horizontales y verticales
@@ -40,6 +43,9 @@ public:
     //metodos de depuracion 
     //void debugPuntosDeCelda(int filaCelda, int colCelda) const;
     Nodo4<Celda>* getInicioCeldas() const { return inicioCeldas;}
+
+    void expandirAbajo();
+    void expandirDerecha();
 };
 
 #endif

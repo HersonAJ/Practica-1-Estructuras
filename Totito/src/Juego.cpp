@@ -3,6 +3,7 @@
 #include "Utilidades.h"
 #include <limits>
 #include "CondicionesDeVictoria/EvaludadorCondiciones.h"
+#include "Tablero.h" 
 using namespace std;
 
 Juego::Juego(Configuracion* config) : config(config), tablero(nullptr), gestor(nullptr) {}
@@ -12,12 +13,11 @@ Juego::~Juego() {
     delete gestor;
 }
 
-// Función auxiliar: convierte "A0" a fila y columna
-static bool parseCoordenada(const string& coord, int& fila, int& col) {
+bool Juego::parseCoordenada(const string& coord, int& fila, int& col) {
     if (coord.size() < 2) return false;
-    col = coord[0] - 'A';  // letra → columna
+    col = coord[0] - 'A';
     try {
-        fila = stoi(coord.substr(1)); // número → fila
+        fila = stoi(coord.substr(1));
     } catch (...) {
         return false;
     }
@@ -25,17 +25,14 @@ static bool parseCoordenada(const string& coord, int& fila, int& col) {
 }
 
 void Juego::inicializar() {
-    // crear tablero
     tablero = new Tablero(config->getFilas(), config->getColumnas());
     gestor = new GestorLineas(tablero->getLineas(), tablero);
 
-    // cargar jugadores en la cola
     for (int i = 0; i < config->getCantidadJugadores(); i++) {
         colaTurnos.encolar(config->getJugador(i));
     }
 }
 
-// NUEVO MÉTODO PARA DEVOLVER EL TURNO AL JUGADOR
 void Juego::devolverTurno(Jugador* jugador) {
     colaTurnos.encolarFrente(jugador);
 }
@@ -46,31 +43,25 @@ void Juego::jugar() {
 
     while (continuar) {
         limpiarPantalla(); 
-
-        // Mostrar estado actual
         tablero->imprimir();
         config->mostrarJugadores();
 
         if (colaTurnos.esVacio()) {
-            std::cout << "No hay más jugadores.\n";
+            cout << "No hay más jugadores.\n";
             break;
         }
 
-                              
         Jugador* jugadorActual = colaTurnos.desencolar();
 
-        std::cout << "\nTurno de: " << jugadorActual->getNombre()
-                  << " (" << jugadorActual->getInicial() << ")\n";
-
+        cout << "\nTurno de: " << jugadorActual->getNombre() << " (" << jugadorActual->getInicial() << ")\n";
         jugadorActual->mostrarPowerUps();
 
-        // Lógica para el manejo de PowerUps dentro del turno
-        std::string respuesta;
+        string respuesta;
         if (!jugadorActual->tienePowerUps()) {
             respuesta = "no";
         } else {
-            std::cout << "¿Desea usar un PowerUp? (si/no): ";
-            std::cin >> respuesta;
+            cout << "¿Desea usar un PowerUp? (si/no): ";
+            cin >> respuesta;
         }
 
         seUsoPowerUp = false;
@@ -78,73 +69,89 @@ void Juego::jugar() {
             seUsoPowerUp = true;
             PowerUp* powerUpUsado = jugadorActual->usarPowerUp();
 
-            std::cout << "\n¡Has usado el PowerUp " << powerUpUsado->getSimbolo() << "!\n";
+            cout << "\n¡Has usado el PowerUp " << powerUpUsado->getSimbolo() << "!\n";
             
             // Llamada polimórfica: el PowerUp se aplica a sí mismo.
             powerUpUsado->aplicarEfecto(this, jugadorActual);
             
             delete powerUpUsado;
+
+            limpiarPantalla();
+            tablero->imprimir();
+            config->mostrarJugadores();
             
-            std::cout << "Presione Enter para continuar...";
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cin.get();
+            cout << "Presione Enter para continuar...";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.get();
         }
 
-        std::string entrada1, entrada2;
-        std::cout << "Ingrese primera coordenada (ej: A0 o 'salir'): ";
-        std::cin >> entrada1;
+        string entrada1, entrada2;
+        cout << "Ingrese primera coordenada (ej: A0 o 'salir'): ";
+        cin >> entrada1;
         if (entrada1 == "salir") break;
 
-        std::cout << "Ingrese segunda coordenada (ej: A1): ";
-        std::cin >> entrada2;
+        cout << "Ingrese segunda coordenada (ej: A1): ";
+        cin >> entrada2;
         if (entrada2 == "salir") break;
 
         int f1, c1, f2, c2;
         if (!parseCoordenada(entrada1, f1, c1) || !parseCoordenada(entrada2, f2, c2)) {
-            std::cout << "Coordenadas inválidas.\n";
-            std::cout << "Presione Enter para continuar...";
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cin.get();
-            colaTurnos.encolar(jugadorActual); // turno pasa al siguiente
+            cout << "Coordenadas inválidas.\n";
+            cout << "Presione Enter para continuar...";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.get();
+            colaTurnos.encolar(jugadorActual);
             continue;
         }
 
-        // Intentar colocar la línea
         if (!gestor->colocarLinea(f1, c1, f2, c2, jugadorActual)) {
-            // Mensaje ya mostrado dentro de colocarLinea
-            std::cout << "Presione Enter para continuar...";
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cin.get();
-            colaTurnos.encolar(jugadorActual); // turno pasa al siguiente
+            cout << "Presione Enter para continuar...";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.get();
+            colaTurnos.encolar(jugadorActual);
             continue;
         }
 
-        // Se encola al jugador si no se usó un PowerUp que ya lo encoló.
         if (!seUsoPowerUp) {
             colaTurnos.encolar(jugadorActual);
         }
 
-        // Validar si ya no quedan líneas libres
         if (gestor->todasLasLineasColocadas()) {
             limpiarPantalla();
             tablero->imprimir();
             config->mostrarJugadores();
-            std::cout << "\nTodas las líneas han sido colocadas. ¡Fin del juego!\n";
+            cout << "\nTodas las líneas han sido colocadas. ¡Fin del juego!\n";
             break;
         }
     }
 
-    std::cout << "\nJuego terminado.\n";
-
-    // Evaluar condiciones de victoria
+    cout << "\nJuego terminado.\n";
     Jugador* ganador = evaluarGanador(tablero, *config->getListaJugadores());
 
-    std::cout << "\nResultado final:\n";
+    cout << "\nResultado final:\n";
     if (ganador != nullptr) {
-        std::cout << "\nGanador: " << ganador->getNombre()
-                  << " (" << ganador->getInicial() << ") con "
-                  << ganador->getPuntos() << " puntos.\n";
+        cout << "\nGanador: " << ganador->getNombre() << " (" << ganador->getInicial() << ") con " << ganador->getPuntos() << " puntos.\n";
     } else {
-        std::cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
+        cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
     }
+}
+
+int Juego::getFilas() const {
+    return tablero->getFilas();
+}
+
+int Juego::getColumnas() const {
+    return tablero->getColumnas();
+}
+
+bool Juego::estaEnBorde(int fila, int columna) const {
+    return (fila == 0 || fila == tablero->getFilas() - 1 || columna == 0 || columna == tablero->getColumnas() - 1);
+}
+
+void Juego::expandirAbajo() {
+    tablero->expandirAbajo();
+}
+
+void Juego::expandirDerecha() {
+    tablero->expandirDerecha();
 }

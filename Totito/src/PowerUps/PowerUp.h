@@ -4,6 +4,7 @@
 #include <string>
 
 class Jugador;
+class Juego;
 
 class PowerUp {
     protected:

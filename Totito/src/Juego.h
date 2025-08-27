@@ -20,6 +20,16 @@ public:
     void inicializar();
     void jugar(); // bucle principal
     void devolverTurno(Jugador* jugador);
+    void expandirTablero(int fila, int columna, int direccion); //metodo para nuevas tierras
+
+    int getFilas() const;
+    int getColumnas() const;
+    bool estaEnBorde(int fila, int columna) const;
+    void expandirArriba();
+    void expandirAbajo();
+    void expandirIzquierda();
+    void expandirDerecha();
+    bool parseCoordenada(const std::string& coord, int& fila, int& col);
 };
 
 #endif

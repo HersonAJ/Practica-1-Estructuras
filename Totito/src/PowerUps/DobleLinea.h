@@ -4,6 +4,9 @@
 #include "PowerUp.h"
 #include <iostream>
 
+class Juego;
+class Jugador;
+
 class DobleLinea : public PowerUp {
 public:
 
@@ -18,7 +21,7 @@ public:
 
     }
 
-    void aplicarEfecto(Juego* juego, Jugador* jugador) override;
+    void aplicarEfecto(Juego* juego, Jugador* jugador) override; 
 };
 
 #endif
