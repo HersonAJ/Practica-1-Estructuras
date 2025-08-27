@@ -61,3 +61,12 @@ PowerUp* Jugador::verSiguientePowerUp() const {
 void Jugador::setColor(int nuevoColor) {
     color = nuevoColor;
 }
+
+void Jugador::mostrarPowerUps() const {
+    if (pilaPowerUps.estaVacia()) {
+        std::cout  << "No tienes PowerUps. \n";
+        return;
+    }
+    std::cout << "  - PowerUps disponibles: ";
+    pilaPowerUps.imprimirPila();
+}

@@ -38,6 +38,7 @@ public:
     PowerUp* usarPowerUp();
     bool tienePowerUps() const;
     PowerUp* verSiguientePowerUp() const;
+    void mostrarPowerUps() const;
     
     // Método para cambiar color
     void setColor(int nuevoColor);

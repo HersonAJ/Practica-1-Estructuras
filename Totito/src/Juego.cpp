@@ -56,6 +56,8 @@ void Juego::jugar() {
         std::cout << "\nTurno de: " << jugadorActual->getNombre()
                   << " (" << jugadorActual->getInicial() << ")\n";
 
+        jugadorActual->mostrarPowerUps();
+
         std::string entrada1, entrada2;
         std::cout << "Ingrese primera coordenada (ej: A0 o 'salir'): ";
         std::cin >> entrada1;
@@ -98,22 +100,18 @@ void Juego::jugar() {
         }
     }
 
-std::cout << "\nJuego terminado.\n";
+        std::cout << "\nJuego terminado.\n";
 
-// Evaluar condiciones de victoria
-Jugador* ganador = evaluarGanador(tablero, *config->getListaJugadores());
+        // Evaluar condiciones de victoria
+        Jugador* ganador = evaluarGanador(tablero, *config->getListaJugadores());
 
-std::cout << "\nResultado final:\n";
-if (ganador != nullptr) {
-    std::cout << "\nGanador: " << ganador->getNombre()
-              << " (" << ganador->getInicial() << ") con "
-              << ganador->getPuntos() << " puntos.\n";
-} else {
-    std::cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
-}
-
-
+        std::cout << "\nResultado final:\n";
+        if (ganador != nullptr) {
+            std::cout << "\nGanador: " << ganador->getNombre()
+                    << " (" << ganador->getInicial() << ") con "
+                    << ganador->getPuntos() << " puntos.\n";
+        } else {
+            std::cout << "\nEmpate técnico: no se pudo determinar un ganador.\n";
+        }
 
 }
-
-

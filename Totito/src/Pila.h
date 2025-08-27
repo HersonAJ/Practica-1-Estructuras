@@ -17,6 +17,15 @@ public:
     T* desapilar();
     T* verTope() const;
     bool estaVacia() const;
+
+    void imprimirPila() const {
+        Nodo<T>* actual = tope;
+        while (actual != nullptr) {
+            std::cout << actual->getDato()->getSimbolo() << " ";
+            actual = actual->getSiguiente();
+        }
+        std::cout << "\n";
+    }
 };
 
 template <typename T>
