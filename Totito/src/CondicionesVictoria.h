@@ -12,6 +12,8 @@ private:
 
     ListaEnlazada<Jugador*>* filtrarPorPuntos(ListaEnlazada<Jugador*>* candidatos);
     ListaEnlazada<Jugador*> filtrarPorCuadradosTotales(Tablero* tablero, ListaEnlazada<Jugador*> jugadores);
+    ListaEnlazada<Jugador*> filtrarPorFilasGanadas(Tablero* tablero, ListaEnlazada<Jugador*> jugadores);
+    ListaEnlazada<Jugador*> filtrarPorColumnasGanadas(Tablero* tablero, ListaEnlazada<Jugador*> jugadores);
 
 public:
     CondicionesVictoria(Tablero* tablero, ListaEnlazada<Jugador*>* jugadores);
