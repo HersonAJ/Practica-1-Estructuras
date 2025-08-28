@@ -12,15 +12,31 @@ Configuracion::~Configuracion() {
     }
 }
 
+#include <limits> // Necesario para std::numeric_limits
+
 void Configuracion::pedirDatos() {
     do {
         std::cout << "Ingrese cantidad de puntos de FILAS (min 3): ";
         std::cin >> filas;
+        
+        if (std::cin.fail()) {
+            std::cin.clear(); // Limpiar el estado de error
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Limpiar buffer
+            std::cout << "Error: Por favor ingrese un número entero válido.\n";
+            filas = 0; // Forzar a que continúe en el bucle
+        }
     } while (filas < 3);
 
     do {
         std::cout << "Ingrese cantidad de puntos de COLUMNAS (min 3): ";
         std::cin >> columnas;
+        
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Error: Por favor ingrese un número entero válido.\n";
+            columnas = 0;
+        }
     } while (columnas < 3);
 }
 
@@ -28,6 +44,13 @@ void Configuracion::pedirJugadores() {
     do {
         std::cout << "Ingrese número de jugadores (1-" << MAX_JUGADORES << "): ";
         std::cin >> cantidadJugadores;
+        
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Error: Por favor ingrese un número entero válido.\n";
+            cantidadJugadores = 0;
+        }
     } while (cantidadJugadores < 1 || cantidadJugadores > MAX_JUGADORES);
 
     std::cin.ignore(); // limpiar buffer

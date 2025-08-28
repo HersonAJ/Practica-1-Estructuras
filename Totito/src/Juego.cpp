@@ -4,6 +4,8 @@
 #include <limits>
 #include "CondicionesDeVictoria/EvaludadorCondiciones.h"
 #include "Tablero.h" 
+#include <algorithm>
+#include <cctype>
 using namespace std;
 
 Juego::Juego(Configuracion* config) : config(config), tablero(nullptr), gestor(nullptr) {}
@@ -15,9 +17,20 @@ Juego::~Juego() {
 
 bool Juego::parseCoordenada(const string& coord, int& fila, int& col) {
     if (coord.size() < 2) return false;
-    col = coord[0] - 'A';
+    
+    // Convertir la letra a mayúscula
+    char letra = toupper(coord[0]);
+    
+    // Validar que sea una letra válida
+    if (letra < 'A' || letra > 'Z') return false;
+    
+    col = letra - 'A';
+    
     try {
         fila = stoi(coord.substr(1));
+        // Validar que la fila esté dentro del rango del tablero
+        if (fila < 0 || fila >= tablero->getFilas()) return false;
+        if (col < 0 || col >= tablero->getColumnas()) return false;
     } catch (...) {
         return false;
     }
@@ -93,6 +106,9 @@ void Juego::jugar() {
         cout << "Ingrese segunda coordenada (ej: A1): ";
         cin >> entrada2;
         if (entrada2 == "salir") break;
+
+        transform(entrada1.begin(), entrada1.end(), entrada1.begin(), ::toupper);
+        transform(entrada2.begin(), entrada2.end(), entrada2.begin(), ::toupper);
 
         int f1, c1, f2, c2;
         if (!parseCoordenada(entrada1, f1, c1) || !parseCoordenada(entrada2, f2, c2)) {

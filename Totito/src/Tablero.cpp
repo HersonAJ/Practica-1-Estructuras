@@ -9,12 +9,12 @@
 #include <ctime>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 using namespace std;
 
 Tablero::Tablero(int filas, int columnas)
     : filas(filas), columnas(columnas), inicio(nullptr) {
 
-        std::cout << "DEBUG_TABLERO: constructor simplificado" << std::endl;
     crearMalla();
     generarLineas(); // Genera las líneas que pertenecen al tablero
     generarCeldas();
@@ -156,7 +156,8 @@ void Tablero::imprimir() const {
                         if (celdaPtr->obtenerDato().estaCompletada()) {
                              cout << " " << celdaPtr->obtenerDato().obtenerInicialPropietario() << " ";
                         } else if (celdaPtr->obtenerDato().getPowerUp() != nullptr) {
-                            cout << " " << celdaPtr->obtenerDato().getPowerUp()->getSimbolo() << " ";
+                            string simbolo = celdaPtr->obtenerDato().getPowerUp()->getSimbolo();
+                            cout << setw(3) << simbolo;
                         } else {
                             cout << "   ";
                         }
@@ -272,8 +273,7 @@ void Tablero::generarCeldas() {
                     }
 
                     nodoCelda->obtenerDato().asignarPowerUp(nuevoPowerUp);
-                    std::cout << "PowerUp " << nuevoPowerUp->getSimbolo() 
-                              << " colocado en la celda: [" << f << "][" << c << "]" << std::endl;
+
                     break; 
                 }
             }
