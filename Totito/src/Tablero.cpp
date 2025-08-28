@@ -7,6 +7,8 @@
 #include"PowerUps/Explosivo.h"
 #include <cstdlib> // para random
 #include <ctime>
+#include <algorithm>
+#include <cmath>
 using namespace std;
 
 Tablero::Tablero(int filas, int columnas)
@@ -111,7 +113,7 @@ void Tablero::generarLineas() {
 
 void Tablero::imprimir() const {
     cout << "    ";
-    for (int c = 0; c < columnas -1; ++c) {
+    for (int c = 0; c < columnas ; ++c) {
         cout << char('A' + c) << "   ";
     }
     cout << "\n\n";
@@ -200,8 +202,8 @@ void Tablero::generarCeldas() {
 
     // Lógica para colocar un PowerUp en una celda aleatoria
     srand(time(nullptr));
-    //int totalCeldas = (filas - 1) * (columnas - 1);
-    int celdasConPowerUp = 3; // Cantidad fija de PowerUps a distribuir
+    int totalCeldas = (filas - 1) * (columnas - 1);
+    int celdasConPowerUp = std::min(12, std::max(3, static_cast<int>(std::sqrt(totalCeldas) * 1.5))); // Cantidad dinamica de PowerUps a distribuir
 
     Nodo4<Punto>* filaPunto = inicio;
     Nodo4<Celda>* filaCeldaInicio = nullptr;
