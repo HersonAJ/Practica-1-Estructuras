@@ -19,7 +19,8 @@ Jugador::Jugador(const std::string& nombre, int color)
     : nombre(nombre),
       inicial(calcularInicial(nombre)),
       puntos(0),
-      color(color) {
+      color(color),
+      powerUpsUsados(0) {
 }
 
 
@@ -28,6 +29,10 @@ const std::string& Jugador::getNombre() const { return nombre;}
 char Jugador::getInicial() const { return inicial; }
 int Jugador::getPuntos() const { return puntos; }
 int Jugador::getColor() const { return color; }
+
+int Jugador::getPowerUpsUsados() const {
+    return powerUpsUsados;
+}
 
 void Jugador::sumarPunto() {
     puntos++;
@@ -47,7 +52,11 @@ void Jugador::agregarPowerUp(PowerUp* powerUp) {
 }
 
 PowerUp* Jugador::usarPowerUp() {
-    return pilaPowerUps.desapilar();
+    PowerUp* powerUpUsado = pilaPowerUps.desapilar();
+    if (powerUpUsado != nullptr) {
+        powerUpsUsados++; // <-- Incrementar el contador
+    }
+    return powerUpUsado;
 }
 bool Jugador::tienePowerUps() const {
     return !pilaPowerUps.estaVacia();

@@ -16,6 +16,7 @@ private:
     int puntos;
     Pila<PowerUp> pilaPowerUps; //pila personal del jugador
     int color;
+    int powerUpsUsados;
 
     // Método privado para calcular inicial 
     char calcularInicial(const std::string& nombre);
@@ -28,6 +29,7 @@ public:
     char getInicial() const;
     int getPuntos() const;
     int getColor() const;
+    int getPowerUpsUsados() const;
     
     // Manejo de puntos
     void sumarPunto();

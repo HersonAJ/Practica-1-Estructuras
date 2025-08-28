@@ -10,6 +10,7 @@ ListaEnlazada<Jugador*> filtrarPorPuntos(ListaEnlazada<Jugador*>* candidatos);
 ListaEnlazada<Jugador*> filtrarPorCuadrosTotales(Tablero* tablero, ListaEnlazada<Jugador*> candidatos);
 ListaEnlazada<Jugador*> filtrarPorFilasGanadas(Tablero* tablero, ListaEnlazada<Jugador*> candidatos);
 ListaEnlazada<Jugador*> filtrarPorColumnasGanadas(Tablero* tablero, ListaEnlazada<Jugador*> candidatos);
+ListaEnlazada<Jugador*> filtrarPorPowerUpsUsados(ListaEnlazada<Jugador*> candidatos);
 
 // Función principal para decidir ganador
 Jugador* evaluarGanador(Tablero* tablero, ListaEnlazada<Jugador*> jugadores);

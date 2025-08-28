@@ -26,6 +26,12 @@ Jugador* evaluarGanador(Tablero* tablero, ListaEnlazada<Jugador*> jugadores) {
         return candidatos.obtenerCabeza()->obtenerDato();
     }
 
+    //Filtro 5: por PowerUps usados
+    candidatos = filtrarPorPowerUpsUsados(candidatos);
+    if (candidatos.obtenerCantidad() == 1) {
+        return candidatos.obtenerCabeza()->obtenerDato();
+    }
+
     std::cout << "Empate técnico: no se pudo determinar un ganador tras aplicar todos los criterios." << std::endl;
     return nullptr;
 }
